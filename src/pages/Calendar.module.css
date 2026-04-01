@@ -1,0 +1,21 @@
+.calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.nav { display: flex; align-items: center; gap: 1rem; }
+.monthLabel { font-family: var(--font-display); font-size: 22px; color: var(--text); }
+.navBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 6px 12px; cursor: pointer; font-size: 13px; }
+.navBtn:hover { border-color: var(--border2); color: var(--text); }
+.dayNames { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+.dayName { text-align: center; font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; padding: 6px; }
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cell { min-height: 90px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; cursor: pointer; transition: all 0.15s; }
+.cell:hover { border-color: var(--border2); background: var(--surface3); }
+.today { border-color: var(--accent) !important; background: var(--accent-glow) !important; }
+.otherMonth { opacity: 0.3; pointer-events: none; }
+.selectedCell { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.dateNum { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.today .dateNum { color: var(--accent); }
+.dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; }
+.dotIncome { background: var(--accent); }
+.dotExpense { background: var(--red); }
+.dotBill { background: var(--amber); }
+.amount { font-size: 10px; font-family: var(--font-mono); color: var(--text3); margin-top: 2px; }
