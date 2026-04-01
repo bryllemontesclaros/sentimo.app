@@ -17,32 +17,7 @@ export default function App() {
 
   useEffect(() => {
     const wasRedirecting = sessionStorage.getItem(REDIRECT_KEY)
-
-    async function init() {
-      // If we set the redirect flag before leaving, handle it first
-      if (wasRedirecting) {
-        sessionStorage.removeItem(REDIRECT_KEY)
-        try {
-          const result = await getRedirectResult(auth)
-          if (result?.user) {
-            await resolveUser(result.user)
-            return
-          }
-        } catch (e) {
-          // Redirect failed — fall through to normal auth
-        }
-      }
-
-      // Normal auth state
-      const unsub = onAuthStateChanged(auth, async u => {
-        if (u) {
-          await resolveUser(u)
-        } else {
-          setUser(null)
-        }
-      })
-      return unsub
-    }
+    if (wasRedirecting) sessionStorage.removeItem(REDIRECT_KEY)
 
     async function resolveUser(u) {
       try {
@@ -54,9 +29,32 @@ export default function App() {
       setUser(u)
     }
 
-    let unsub
-    init().then(u => { unsub = u })
-    return () => { if (unsub) unsub() }
+    // Always set up onAuthStateChanged — it handles ALL cases
+    // including after redirect returns (Firebase resolves it internally)
+    const unsub = onAuthStateChanged(auth, async u => {
+      if (u) {
+        await resolveUser(u)
+      } else {
+        // Only show null if we're NOT mid-redirect
+        if (!wasRedirecting) {
+          setUser(null)
+        } else {
+          // Mid-redirect — wait for getRedirectResult to fire auth state again
+          try {
+            const result = await getRedirectResult(auth)
+            if (result?.user) {
+              await resolveUser(result.user)
+            } else {
+              setUser(null)
+            }
+          } catch {
+            setUser(null)
+          }
+        }
+      }
+    })
+
+    return unsub
   }, [])
 
   if (user === undefined) return <PageLoader />

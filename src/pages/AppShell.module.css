@@ -1,4 +1,4 @@
-.shell { display: flex; height: 100vh; overflow: hidden; }
+.shell { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* SIDEBAR — desktop */
 .sidebar { width: 220px; min-width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 1.5rem 0; overflow-y: auto; }
