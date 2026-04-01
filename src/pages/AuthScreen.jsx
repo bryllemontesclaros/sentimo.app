@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signInWithPopup, signInWithRedirect,
@@ -27,7 +28,8 @@ const GoogleIcon = () => (
   </svg>
 )
 
-export default function AuthScreen({ onBack, redirectKey }) {
+export default function AuthScreen() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -68,14 +70,12 @@ export default function AuthScreen({ onBack, redirectKey }) {
     setError('')
     try {
       if (isMobile()) {
-        // Set flag so App.jsx knows to wait for redirect result
-        if (redirectKey) sessionStorage.setItem(redirectKey, '1')
         await signInWithRedirect(auth, googleProvider)
+        // onAuthStateChanged in AuthRoute handles the result
       } else {
         await signInWithPopup(auth, googleProvider)
       }
     } catch (e) {
-      if (redirectKey) sessionStorage.removeItem(redirectKey)
       if (e.code !== 'auth/popup-closed-by-user') {
         setError('Google sign-in failed. Try again.')
       }
@@ -101,7 +101,7 @@ export default function AuthScreen({ onBack, redirectKey }) {
       <div className={styles.card}>
         <div className={styles.logo}>Sentimo</div>
         <div className={styles.tagline}>Bawat piso, sinusubaybayan.</div>
-        {onBack && <button className={styles.backLink} onClick={onBack} style={{ marginBottom: '1rem' }}>← Back</button>}
+        {<button className={styles.backLink} onClick={() => navigate('/')} style={{ marginBottom: '1rem' }}>← Back</button>}
 
         {!showForgot ? (
           <>

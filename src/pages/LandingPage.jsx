@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import styles from './LandingPage.module.css'
 
 const FEATURES = [
@@ -9,13 +10,15 @@ const FEATURES = [
   { icon: '☁️', title: 'Syncs across devices', desc: 'Your data lives in the cloud. Log on your phone, review on your laptop. Always in sync.' },
 ]
 
-export default function LandingPage({ onGetStarted }) {
+export default function LandingPage() {
+  const navigate = useNavigate()
+  const go = () => navigate('/login')
   return (
     <div className={styles.page}>
       {/* NAV */}
       <nav className={styles.nav}>
         <div className={styles.navLogo}>Sentimo</div>
-        <button className={styles.navCta} onClick={onGetStarted}>Get started free</button>
+        <button className={styles.navCta} onClick={go}>Get started free</button>
       </nav>
 
       {/* HERO */}
@@ -29,7 +32,7 @@ export default function LandingPage({ onGetStarted }) {
           Built for Filipinos, free to use.
         </p>
         <div className={styles.heroBtns}>
-          <button className={styles.btnPrimary} onClick={onGetStarted}>Start tracking for free</button>
+          <button className={styles.btnPrimary} onClick={go}>Start tracking for free</button>
           <div className={styles.heroNote}>No credit card · Free forever</div>
         </div>
 
@@ -102,7 +105,7 @@ export default function LandingPage({ onGetStarted }) {
       <section className={styles.cta}>
         <h2 className={styles.ctaTitle}>Ready to take control of your finances?</h2>
         <p className={styles.ctaSub}>Join thousands of Filipinos tracking their pesos with Sentimo.</p>
-        <button className={styles.btnPrimary} onClick={onGetStarted}>Start for free →</button>
+        <button className={styles.btnPrimary} onClick={go}>Start for free →</button>
       </section>
 
       {/* FOOTER */}
@@ -110,9 +113,9 @@ export default function LandingPage({ onGetStarted }) {
         <div className={styles.footerLogo}>Sentimo</div>
         <div className={styles.footerTagline}>Bawat piso, sinusubaybayan.</div>
         <div className={styles.footerLinks}>
-          <span onClick={onGetStarted} style={{ cursor: 'pointer' }}>Log in</span>
+          <span onClick={go} style={{ cursor: 'pointer' }}>Log in</span>
           <span>·</span>
-          <span onClick={onGetStarted} style={{ cursor: 'pointer' }}>Sign up</span>
+          <span onClick={go} style={{ cursor: 'pointer' }}>Sign up</span>
         </div>
         <div className={styles.footerCopy}>© {new Date().getFullYear()} Sentimo. Free personal finance tracker.</div>
       </footer>

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { onAuthStateChanged, getRedirectResult } from 'firebase/auth'
 import { auth, db } from './lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
@@ -8,17 +9,13 @@ import AppShell from './pages/AppShell'
 import Onboarding from './pages/Onboarding'
 import { PageLoader } from './components/Loading'
 
-const REDIRECT_KEY = 'sentimo_google_redirect'
-
-export default function App() {
-  const [user, setUser] = useState(undefined)
+function AuthRoute() {
+  const navigate = useNavigate()
+  const [ready, setReady] = useState(false)
+  const [user, setUser] = useState(null)
   const [isNew, setIsNew] = useState(false)
-  const [showAuth, setShowAuth] = useState(false)
 
   useEffect(() => {
-    const wasRedirecting = sessionStorage.getItem(REDIRECT_KEY)
-    if (wasRedirecting) sessionStorage.removeItem(REDIRECT_KEY)
-
     async function resolveUser(u) {
       try {
         const profileDoc = await getDoc(doc(db, 'users', u.uid, 'profile', 'main'))
@@ -27,43 +24,79 @@ export default function App() {
         setIsNew(false)
       }
       setUser(u)
+      setReady(true)
     }
 
-    // Always set up onAuthStateChanged — it handles ALL cases
-    // including after redirect returns (Firebase resolves it internally)
+    async function init() {
+      // Handle Google redirect result first
+      try {
+        const result = await getRedirectResult(auth)
+        if (result?.user) {
+          await resolveUser(result.user)
+          navigate('/app', { replace: true })
+          return
+        }
+      } catch {}
+
+      // Check current auth state
+      const unsub = onAuthStateChanged(auth, async u => {
+        if (u) {
+          await resolveUser(u)
+          navigate('/app', { replace: true })
+        } else {
+          setReady(true)
+        }
+      })
+      return unsub
+    }
+
+    let unsub
+    init().then(u => { unsub = u })
+    return () => { if (typeof unsub === 'function') unsub() }
+  }, [])
+
+  if (!ready) return <PageLoader />
+  if (user && isNew) return <Onboarding user={user} onDone={() => navigate('/app', { replace: true })} />
+  return <AuthScreen />
+}
+
+function ProtectedRoute() {
+  const navigate = useNavigate()
+  const [ready, setReady] = useState(false)
+  const [user, setUser] = useState(null)
+  const [isNew, setIsNew] = useState(false)
+
+  useEffect(() => {
     const unsub = onAuthStateChanged(auth, async u => {
       if (u) {
-        await resolveUser(u)
-      } else {
-        // Only show null if we're NOT mid-redirect
-        if (!wasRedirecting) {
-          setUser(null)
-        } else {
-          // Mid-redirect — wait for getRedirectResult to fire auth state again
-          try {
-            const result = await getRedirectResult(auth)
-            if (result?.user) {
-              await resolveUser(result.user)
-            } else {
-              setUser(null)
-            }
-          } catch {
-            setUser(null)
-          }
+        try {
+          const profileDoc = await getDoc(doc(db, 'users', u.uid, 'profile', 'main'))
+          setIsNew(!profileDoc.exists())
+        } catch {
+          setIsNew(false)
         }
+        setUser(u)
+      } else {
+        navigate('/login', { replace: true })
       }
+      setReady(true)
     })
-
     return unsub
   }, [])
 
-  if (user === undefined) return <PageLoader />
+  if (!ready) return <PageLoader />
+  if (isNew) return <Onboarding user={user} onDone={() => setIsNew(false)} />
+  if (user) return <AppShell user={user} />
+  return null
+}
 
-  if (user) {
-    if (isNew) return <Onboarding user={user} onDone={() => setIsNew(false)} />
-    return <AppShell user={user} />
-  }
-
-  if (showAuth) return <AuthScreen onBack={() => setShowAuth(false)} redirectKey={REDIRECT_KEY} />
-  return <LandingPage onGetStarted={() => setShowAuth(true)} />
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage onGetStarted={() => window.location.href = '/login'} />} />
+      <Route path="/login" element={<AuthRoute />} />
+      <Route path="/app" element={<ProtectedRoute />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
 }
