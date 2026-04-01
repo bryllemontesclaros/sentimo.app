@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signInWithPopup, signInWithRedirect,
-  updateProfile, sendPasswordResetEmail
+  signInWithPopup, updateProfile, sendPasswordResetEmail
 } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
 import styles from './AuthScreen.module.css'
@@ -15,8 +14,6 @@ const ERROR_MSGS = {
   'auth/email-already-in-use': 'An account with this email already exists.',
   'auth/invalid-email': 'Invalid email address.',
 }
-
-const isMobile = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
@@ -67,12 +64,7 @@ export default function AuthScreen({ onBack }) {
   async function handleGoogle() {
     setError('')
     try {
-      if (isMobile()) {
-        await signInWithRedirect(auth, googleProvider)
-        // Page will redirect — auth handled by getRedirectResult on return
-      } else {
-        await signInWithPopup(auth, googleProvider)
-      }
+      await signInWithPopup(auth, googleProvider)
     } catch (e) {
       if (e.code !== 'auth/popup-closed-by-user') {
         setError('Google sign-in failed. Try again.')

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { onAuthStateChanged, getRedirectResult } from 'firebase/auth'
+import { onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from './lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 import LandingPage from './pages/LandingPage'
@@ -14,13 +14,9 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
 
   useEffect(() => {
-    // Handle Google redirect result first (mobile sign-in)
-    getRedirectResult(auth).catch(() => {})
-
     const unsub = onAuthStateChanged(auth, async u => {
       if (u) {
         try {
-          // Use Firestore profile to detect new user — reliable on all devices
           const profileDoc = await getDoc(doc(db, 'users', u.uid, 'profile', 'main'))
           setIsNew(!profileDoc.exists())
         } catch {
