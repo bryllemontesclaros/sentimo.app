@@ -1,5 +1,5 @@
 .totalCard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; text-align: center; margin-bottom: 1.5rem; }
-.totalLabel { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.totalLabel { font-size: 12px; color: var(--text3); letter-spacing: 0.3px; margin-bottom: 8px; }
 .totalVal { font-family: var(--font-display); font-size: 40px; color: var(--accent); letter-spacing: -1px; margin-bottom: 4px; }
 .totalSub { font-size: 13px; color: var(--text3); }
 

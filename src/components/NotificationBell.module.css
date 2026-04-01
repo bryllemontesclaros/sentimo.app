@@ -1,10 +1,10 @@
 .wrap { position: relative; }
-.bell { background: none; border: none; font-size: 18px; cursor: pointer; padding: 6px; border-radius: var(--radius-sm); position: relative; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; }
-.bell:hover { background: var(--surface2); }
+.bell { background: none; border: none; font-size: 18px; cursor: pointer; padding: 6px; border-radius: var(--radius-sm); position: relative; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text2); }
+.bell:hover { background: var(--surface2); color: var(--text); }
 .badge { position: absolute; top: 2px; right: 2px; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 4px; min-width: 16px; text-align: center; font-family: var(--font-body); }
 
-.dropdown { position: absolute; top: calc(100% + 8px); right: 0; width: 320px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); z-index: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.4); overflow: hidden; }
-@media (max-width: 400px) { .dropdown { width: calc(100vw - 2rem); right: -1rem; } }
+.dropdown { position: fixed; top: 52px; right: 12px; width: 320px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); z-index: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.25); overflow: hidden; }
+@media (max-width: 400px) { .dropdown { width: calc(100vw - 24px); right: 12px; } }
 
 .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); }
 .headerTitle { font-size: 13px; font-weight: 600; color: var(--text); }

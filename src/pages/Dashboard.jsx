@@ -83,8 +83,9 @@ export default function Dashboard({ data, profile, symbol }) {
       </div>
 
       {!profileSalary && (
-        <div style={{ background: 'var(--amber-dim)', border: '1px solid var(--amber)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', fontSize: 13, color: 'var(--amber)', marginBottom: '1.5rem' }}>
-          Set your monthly salary in <strong>Settings → Salary Profile</strong> for more accurate tracking.
+        <div style={{ background: 'var(--amber-dim)', border: '1px solid var(--amber)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', fontSize: 13, color: 'var(--text)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 16 }}>💼</span>
+          <span>Set your monthly salary in <strong style={{ color: 'var(--amber)' }}>Settings → Salary Profile</strong> for more accurate tracking.</span>
         </div>
       )}
 

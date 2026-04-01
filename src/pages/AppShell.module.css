@@ -16,12 +16,15 @@
 .userEmail { font-size: 11px; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
 .btnLogout { background: none; border: none; color: var(--text3); font-size: 11px; cursor: pointer; padding: 0; }
 .btnLogout:hover { color: var(--red); }
-.themeToggle { background: none; border: none; color: var(--text3); font-size: 11px; cursor: pointer; padding: 0; margin-top: 6px; display: block; }
-.themeToggle:hover { color: var(--accent); }
 
 /* BOTTOM NAV — hidden by default, shown on mobile only */
 .bottomNav { display: none; }
 .main { flex: 1; overflow-y: auto; background: var(--bg); }
+.mainWrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topBar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; padding: 0 1.5rem; flex-shrink: 0; }
+.topBarRight { display: flex; align-items: center; gap: 4px; }
+.themeBtn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; transition: all 0.15s; }
+.themeBtn:hover { background: var(--surface2); color: var(--text); }
 
 /* FLOATING ACTION BUTTON */
 .fab { position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--red); color: #fff; border: none; font-size: 28px; font-weight: 700; cursor: pointer; z-index: 90; box-shadow: 0 4px 16px rgba(255,83,112,0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.15s, box-shadow 0.15s; }
@@ -39,7 +42,9 @@
 @media (max-width: 768px) {
   .shell { flex-direction: column; }
   .sidebar { display: none; }
+  .mainWrap { flex: 1; overflow: hidden; }
   .main { flex: 1; overflow-y: auto; padding-bottom: 70px; }
+  .topBar { padding: 0 1rem; }
   .bottomNav {
     display: flex;
     position: fixed;
