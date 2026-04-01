@@ -18,6 +18,9 @@
 .btnLogout:hover { color: var(--red); }
 .themeToggle { background: none; border: none; color: var(--text3); font-size: 11px; cursor: pointer; padding: 0; margin-top: 6px; display: block; }
 .themeToggle:hover { color: var(--accent); }
+
+/* BOTTOM NAV — hidden by default, shown on mobile only */
+.bottomNav { display: none; }
 .main { flex: 1; overflow-y: auto; background: var(--bg); }
 
 /* FLOATING ACTION BUTTON */
