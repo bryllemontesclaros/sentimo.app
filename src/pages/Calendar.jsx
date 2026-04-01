@@ -7,9 +7,7 @@ import calStyles from './Calendar.module.css'
 
 const CATS_INCOME = ['Salary','Freelance','Business','Investment','13th Month','Bonus','Other']
 const CATS_EXPENSE = ['Food & Dining','Transport','Shopping','Health','Entertainment','Personal Care','Bills','Education','Other']
-const CATS_BILL = ['Electric','Water','Internet','Rent','Phone','Insurance','Subscription','Other']
-
-const EMPTY_FORM = { desc: '', amount: '', type: 'income', cat: 'Salary', recur: '', due: '' }
+const EMPTY_FORM = { desc: '', amount: '', type: 'income', cat: 'Salary', recur: '' }
 
 export default function Calendar({ user, data, symbol }) {
   const s = symbol || '₱'
@@ -18,7 +16,7 @@ export default function Calendar({ user, data, symbol }) {
   const [month, setMonth] = useState(now.getMonth())
   const [selected, setSelected] = useState(null)
   const [showModal, setShowModal] = useState(false)
-  const [modalType, setModalType] = useState('income') // 'income' | 'expense' | 'bill'
+  const [modalType, setModalType] = useState('income')
   const [editTx, setEditTx] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [editGoalId, setEditGoalId] = useState(null)
@@ -30,13 +28,11 @@ export default function Calendar({ user, data, symbol }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const prevDays = new Date(year, month, 0).getDate()
 
-  // Generate projected recurring transactions for this month
   const projected = useMemo(() =>
     getProjectedTransactions(data.income, data.expenses, year, month),
     [data.income, data.expenses, year, month]
   )
 
-  // All income + expenses for this month (real + projected)
   const allIncome = useMemo(() => [
     ...data.income.filter(t => t.date?.startsWith(`${year}-${String(month+1).padStart(2,'0')}`)),
     ...projected.filter(t => t.type === 'income'),
@@ -49,7 +45,6 @@ export default function Calendar({ user, data, symbol }) {
 
   function prev() { if (month === 0) { setMonth(11); setYear(y => y - 1) } else setMonth(m => m - 1) }
   function next() { if (month === 11) { setMonth(0); setYear(y => y + 1) } else setMonth(m => m + 1) }
-
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
   function dateStr(d) {
@@ -61,60 +56,40 @@ export default function Calendar({ user, data, symbol }) {
     return {
       income: allIncome.filter(t => t.date === ds),
       expenses: allExpenses.filter(t => t.date === ds),
-      bills: data.bills.filter(b => b.due === d),
     }
   }
 
   function openAdd(date, type = modalType) {
     setEditTx(null)
     setModalType(type)
-    const cat = type === 'income' ? 'Salary' : type === 'bill' ? 'Electric' : 'Food & Dining'
-    setForm({ ...EMPTY_FORM, type: type === 'bill' ? 'bill' : type, cat })
+    const cat = type === 'income' ? 'Salary' : 'Food & Dining'
+    setForm({ ...EMPTY_FORM, type, cat })
     setSelected(date)
     setShowModal(true)
   }
 
   function openEdit(tx) {
     setEditTx(tx)
-    const type = tx.type === 'bill' ? 'bill' : tx.type
-    setModalType(type)
-    setForm({
-      desc: tx.desc || tx.name || '',
-      amount: tx.amount || '',
-      type: tx.type || 'income',
-      cat: tx.cat || '',
-      recur: tx.recur || tx.freq || '',
-      due: tx.due || '',
-    })
+    setModalType(tx.type)
+    setForm({ desc: tx.desc || '', amount: tx.amount || '', type: tx.type || 'income', cat: tx.cat || '', recur: tx.recur || '' })
     setShowModal(true)
   }
 
   async function handleSave() {
     if (!form.desc || !form.amount) return alert('Please fill all fields')
     const amount = parseFloat(form.amount)
-
     if (editTx) {
-      if (editTx.type === 'bill' || modalType === 'bill') {
-        await fsUpdate(user.uid, 'bills', editTx._id, { name: form.desc, amount, cat: form.cat, freq: form.recur, due: parseInt(form.due) || editTx.due })
-      } else {
-        const col = editTx.type === 'income' ? 'income' : 'expenses'
-        await fsUpdate(user.uid, col, editTx._id, { desc: form.desc, amount, cat: form.cat, recur: form.recur })
-      }
+      const col = editTx.type === 'income' ? 'income' : 'expenses'
+      await fsUpdate(user.uid, col, editTx._id, { desc: form.desc, amount, cat: form.cat, recur: form.recur })
     } else {
-      if (modalType === 'bill') {
-        const dayNum = selected ? parseInt(selected.split('-')[2]) : 1
-        await fsAdd(user.uid, 'bills', { name: form.desc, amount, cat: form.cat, freq: form.recur || 'monthly', due: dayNum, paid: false, type: 'bill' })
-      } else {
-        const col = modalType === 'income' ? 'income' : 'expenses'
-        await fsAdd(user.uid, col, { desc: form.desc, amount, date: selected, cat: form.cat, recur: form.recur, type: modalType })
-      }
+      const col = modalType === 'income' ? 'income' : 'expenses'
+      await fsAdd(user.uid, col, { desc: form.desc, amount, date: selected, cat: form.cat, recur: form.recur, type: modalType })
     }
     setShowModal(false); setEditTx(null); setForm(EMPTY_FORM)
   }
 
   async function handleDelete(tx) {
     if (tx._projected) return alert('This is a recurring projection. Delete the original transaction to remove it.')
-    if (tx.type === 'bill') { await fsDel(user.uid, 'bills', tx._id); return }
     await fsDel(user.uid, tx.type === 'income' ? 'income' : 'expenses', tx._id)
   }
 
@@ -125,22 +100,16 @@ export default function Calendar({ user, data, symbol }) {
     setEditGoalId(null); setGoalInput('')
   }
 
-  // Day panel — all items for selected day
   const selectedIncome = selected ? allIncome.filter(t => t.date === selected) : []
   const selectedExpenses = selected ? allExpenses.filter(t => t.date === selected) : []
-  const selectedBills = selected ? data.bills.filter(b => b.due === parseInt(selected?.split('-')[2])) : []
 
-  // Monthly totals
-  const ym = `${year}-${String(month + 1).padStart(2, '0')}`
   const mIncome = allIncome.reduce((a, t) => a + (t.amount || 0), 0)
   const mExpense = allExpenses.reduce((a, t) => a + (t.amount || 0), 0)
-  const mBills = data.bills.reduce((a, b) => a + (b.amount || 0), 0)
   const totalSavings = data.goals.reduce((a, g) => a + (g.current || 0), 0)
   const net = mIncome - mExpense
 
-  const isBill = modalType === 'bill'
   const isIncome = modalType === 'income'
-  const cats = isBill ? CATS_BILL : isIncome ? CATS_INCOME : CATS_EXPENSE
+  const cats = isIncome ? CATS_INCOME : CATS_EXPENSE
 
   return (
     <div className={styles.page}>
@@ -160,7 +129,6 @@ export default function Calendar({ user, data, symbol }) {
           <div className={calStyles.addBtns}>
             <button className={calStyles.addBtnIncome} onClick={() => openAdd(selected || todayStr, 'income')}>+ Income</button>
             <button className={calStyles.addBtnExpense} onClick={() => openAdd(selected || todayStr, 'expense')}>− Expense</button>
-            <button className={calStyles.addBtnBill} onClick={() => openAdd(selected || todayStr, 'bill')}>Bills</button>
           </div>
         </div>
 
@@ -179,10 +147,9 @@ export default function Calendar({ user, data, symbol }) {
           {Array.from({ length: daysInMonth }, (_, i) => {
             const d = i + 1
             const ds = dateStr(d)
-            const { income, expenses, bills } = getDayData(d)
+            const { income, expenses } = getDayData(d)
             const dayNet = income.reduce((a, t) => a + (t.amount || 0), 0) - expenses.reduce((a, t) => a + (t.amount || 0), 0)
-            const hasAny = income.length || expenses.length || bills.length
-            const hasBillDue = bills.length > 0
+            const hasAny = income.length || expenses.length
             return (
               <div key={d}
                 className={`${calStyles.cell} ${ds === todayStr ? calStyles.today : ''} ${selected === ds ? calStyles.selectedCell : ''}`}
@@ -193,7 +160,6 @@ export default function Calendar({ user, data, symbol }) {
                 <div className={calStyles.dots}>
                   {income.length > 0 && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
                   {expenses.length > 0 && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
-                  {hasBillDue && <div className={`${calStyles.dot} ${calStyles.dotBill}`} />}
                 </div>
                 {hasAny && (
                   <div className={calStyles.amount} style={{ color: dayNet >= 0 ? 'var(--accent)' : 'var(--red)' }}>
@@ -223,11 +189,6 @@ export default function Calendar({ user, data, symbol }) {
           </div>
           <div className={calStyles.stripDivider} />
           <div className={calStyles.stripItem}>
-            <span className={calStyles.stripLabel}>Bills</span>
-            <span className={calStyles.stripVal} style={{ color: 'var(--amber)' }}>{fmt(mBills, s)}</span>
-          </div>
-          <div className={calStyles.stripDivider} />
-          <div className={calStyles.stripItem}>
             <span className={calStyles.stripLabel}>Net</span>
             <span className={calStyles.stripVal} style={{ color: net >= 0 ? 'var(--blue)' : 'var(--red)' }}>{net >= 0 ? '+' : ''}{fmt(net, s)}</span>
           </div>
@@ -247,7 +208,6 @@ export default function Calendar({ user, data, symbol }) {
             <div style={{ display: 'flex', gap: 6 }}>
               <button className={calStyles.addBtnIncome} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'income')}>+ Income</button>
               <button className={calStyles.addBtnExpense} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'expense')}>− Expense</button>
-              <button className={calStyles.addBtnBill} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'bill')}>Bill</button>
             </div>
           </div>
 
@@ -255,9 +215,7 @@ export default function Calendar({ user, data, symbol }) {
           {selectedIncome.length > 0 && (
             <div className={calStyles.daySection}>
               <div className={calStyles.daySectionLabel} style={{ color: 'var(--accent)' }}>Income</div>
-              {selectedIncome.map(t => (
-                <DayTxRow key={t._id} t={t} s={s} onEdit={openEdit} onDelete={handleDelete} />
-              ))}
+              {selectedIncome.map(t => <DayTxRow key={t._id} t={t} s={s} onEdit={openEdit} onDelete={handleDelete} />)}
             </div>
           )}
 
@@ -265,38 +223,11 @@ export default function Calendar({ user, data, symbol }) {
           {selectedExpenses.length > 0 && (
             <div className={calStyles.daySection}>
               <div className={calStyles.daySectionLabel} style={{ color: 'var(--red)' }}>Expenses</div>
-              {selectedExpenses.map(t => (
-                <DayTxRow key={t._id} t={t} s={s} onEdit={openEdit} onDelete={handleDelete} />
-              ))}
+              {selectedExpenses.map(t => <DayTxRow key={t._id} t={t} s={s} onEdit={openEdit} onDelete={handleDelete} />)}
             </div>
           )}
 
-          {/* BILLS DUE */}
-          {selectedBills.length > 0 && (
-            <div className={calStyles.daySection}>
-              <div className={calStyles.daySectionLabel} style={{ color: 'var(--amber)' }}>Bills due</div>
-              {selectedBills.map(b => (
-                <div key={b._id} className={calStyles.txRow}>
-                  <div className={calStyles.txLeft}>
-                    <div className={calStyles.txIcon} style={{ background: 'var(--amber-dim)', color: 'var(--amber)' }}>◷</div>
-                    <div>
-                      <div className={calStyles.txDesc}>{b.name}</div>
-                      <div className={calStyles.txMeta}>{b.cat} · {b.freq}</div>
-                    </div>
-                  </div>
-                  <div className={calStyles.txRight}>
-                    <div className={calStyles.txAmount} style={{ color: 'var(--amber)' }}>{fmt(b.amount, s)}</div>
-                    <div className={calStyles.txActions}>
-                      <button className={calStyles.editBtn} onClick={() => openEdit({ ...b, type: 'bill' })}>Edit</button>
-                      <button className={calStyles.delBtnSm} onClick={() => fsDel(user.uid, 'bills', b._id)}>✕</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {selectedIncome.length === 0 && selectedExpenses.length === 0 && selectedBills.length === 0 && (
+          {selectedIncome.length === 0 && selectedExpenses.length === 0 && (
             <div className={styles.empty}>No transactions on this day. Use the buttons above to add.</div>
           )}
 
@@ -356,43 +287,40 @@ export default function Calendar({ user, data, symbol }) {
           <div className={calStyles.modal}>
             <div className={calStyles.modalHeader}>
               <div className={calStyles.modalTitle}>
-                {editTx ? 'Edit' : `Add ${modalType === 'bill' ? 'Bill' : modalType === 'income' ? 'Income' : 'Expense'}`}
+                {editTx ? 'Edit transaction' : `Add ${isIncome ? 'Income' : 'Expense'}`}
                 {selected && !editTx && <span style={{ fontSize: 13, color: 'var(--text3)', marginLeft: 8 }}>{selected}</span>}
               </div>
               <button onClick={() => { setShowModal(false); setEditTx(null) }} className={calStyles.modalClose}>✕</button>
             </div>
 
-            {/* TYPE INDICATOR */}
+            {/* TYPE TOGGLE */}
             {!editTx && (
               <div className={calStyles.typeToggle}>
                 <button className={`${calStyles.typeBtn} ${isIncome ? calStyles.typeBtnIncome : ''}`} onClick={() => { setModalType('income'); set('cat', 'Salary') }}>
                   <span className={calStyles.typeBtnSign}>+</span><span>Income</span>
                 </button>
-                <button className={`${calStyles.typeBtn} ${!isIncome && !isBill ? calStyles.typeBtnExpense : ''}`} onClick={() => { setModalType('expense'); set('cat', 'Food & Dining') }}>
+                <button className={`${calStyles.typeBtn} ${!isIncome ? calStyles.typeBtnExpense : ''}`} onClick={() => { setModalType('expense'); set('cat', 'Food & Dining') }}>
                   <span className={calStyles.typeBtnSign}>−</span><span>Expense</span>
-                </button>
-                <button className={`${calStyles.typeBtn} ${isBill ? calStyles.typeBtnBill : ''}`} onClick={() => { setModalType('bill'); set('cat', 'Electric') }}>
-                  <span className={calStyles.typeBtnSign}>◷</span><span>Bill</span>
                 </button>
               </div>
             )}
 
             {/* AMOUNT */}
             <div className={calStyles.amountField}>
-              <span className={calStyles.amountSign} style={{ color: isBill ? 'var(--amber)' : isIncome ? 'var(--accent)' : 'var(--red)' }}>
-                {isBill ? '◷' : isIncome ? '+' : '−'}
+              <span className={calStyles.amountSign} style={{ color: isIncome ? 'var(--accent)' : 'var(--red)' }}>
+                {isIncome ? '+' : '−'}
               </span>
               <span className={calStyles.amountSymbol}>{s}</span>
               <input className={calStyles.amountInput} type="number" min="0" placeholder="0.00"
                 value={form.amount} onChange={e => set('amount', e.target.value)}
-                style={{ color: isBill ? 'var(--amber)' : isIncome ? 'var(--accent)' : 'var(--red)' }} />
+                style={{ color: isIncome ? 'var(--accent)' : 'var(--red)' }} />
             </div>
 
             {/* DESC + CATEGORY */}
             <div className={calStyles.modalFields}>
               <div className={styles.formGroup}>
-                <label>{isBill ? 'Bill name' : 'Description'}</label>
-                <input placeholder={isBill ? 'e.g. Meralco' : 'What is this for?'} value={form.desc} onChange={e => set('desc', e.target.value)} />
+                <label>Description</label>
+                <input placeholder="What is this for?" value={form.desc} onChange={e => set('desc', e.target.value)} />
               </div>
               <div className={styles.formGroup}>
                 <label>Category</label>
@@ -404,9 +332,9 @@ export default function Calendar({ user, data, symbol }) {
 
             {/* RECURRENCE */}
             <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
-              <label>{isBill ? 'Frequency' : 'Recurrence'}</label>
+              <label>Recurrence</label>
               <div className={calStyles.recurGrid}>
-                {RECUR_OPTIONS.filter(o => isBill ? o.value !== 'daily' : true).map(opt => (
+                {RECUR_OPTIONS.map(opt => (
                   <button key={opt.value} onClick={() => set('recur', opt.value)}
                     className={`${calStyles.recurChip} ${form.recur === opt.value ? calStyles.recurChipActive : ''}`}>
                     {opt.label}
@@ -418,8 +346,8 @@ export default function Calendar({ user, data, symbol }) {
             <div className={calStyles.modalActions}>
               <button onClick={() => { setShowModal(false); setEditTx(null) }} className={calStyles.btnCancel}>Cancel</button>
               <button onClick={handleSave} className={calStyles.btnSave}
-                style={{ background: isBill ? 'var(--amber)' : isIncome ? 'var(--accent)' : 'var(--red)', color: isBill || isIncome ? '#0a0a0f' : '#fff' }}>
-                {editTx ? 'Save changes' : isBill ? 'Add bill' : isIncome ? '+ Add income' : '− Add expense'}
+                style={{ background: isIncome ? 'var(--accent)' : 'var(--red)', color: isIncome ? '#0a0a0f' : '#fff' }}>
+                {editTx ? 'Save changes' : isIncome ? '+ Add income' : '− Add expense'}
               </button>
             </div>
           </div>
@@ -429,7 +357,6 @@ export default function Calendar({ user, data, symbol }) {
   )
 }
 
-// Reusable transaction row component
 function DayTxRow({ t, s, onEdit, onDelete }) {
   const isIncome = t.type === 'income'
   return (

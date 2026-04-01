@@ -81,8 +81,8 @@
 .modalTitle { font-family: var(--font-display); font-size: 20px; color: var(--text); }
 .modalClose { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; min-width: 36px; min-height: 36px; }
 
-/* TYPE TOGGLE — 3 buttons */
-.typeToggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 1.25rem; }
+/* TYPE TOGGLE — 2 buttons */
+.typeToggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 1.25rem; }
 .typeBtn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 8px; border: 2px solid var(--border); border-radius: var(--radius); background: var(--surface2); color: var(--text3); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; min-height: 52px; }
 .typeBtn:hover { border-color: var(--border2); color: var(--text); }
 .typeBtnIncome { border-color: var(--accent) !important; background: var(--accent-glow) !important; color: var(--accent) !important; }

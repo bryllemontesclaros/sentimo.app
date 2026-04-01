@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signInWithPopup, updateProfile, sendPasswordResetEmail
+  signInWithPopup, signInWithRedirect, getRedirectResult,
+  updateProfile, sendPasswordResetEmail
 } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
 import styles from './AuthScreen.module.css'
@@ -15,6 +16,8 @@ const ERROR_MSGS = {
   'auth/invalid-email': 'Invalid email address.',
 }
 
+const isMobile = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -24,7 +27,7 @@ const GoogleIcon = () => (
   </svg>
 )
 
-export default function AuthScreen() {
+export default function AuthScreen({ onBack }) {
   const [tab, setTab] = useState('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -33,6 +36,19 @@ export default function AuthScreen() {
   const [showForgot, setShowForgot] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const [resetLoading, setResetLoading] = useState(false)
+
+  // Handle redirect result on mobile after returning from Google
+  useEffect(() => {
+    getRedirectResult(auth).then(result => {
+      if (result?.user) {
+        // Auth state listener in App.jsx handles the rest
+      }
+    }).catch(e => {
+      if (e.code !== 'auth/no-redirect-result') {
+        setError(ERROR_MSGS[e.code] || 'Google sign-in failed. Try again.')
+      }
+    })
+  }, [])
 
   function set(field, val) { setForm(f => ({ ...f, [field]: val })) }
 
@@ -64,9 +80,16 @@ export default function AuthScreen() {
   async function handleGoogle() {
     setError('')
     try {
-      await signInWithPopup(auth, googleProvider)
+      if (isMobile()) {
+        await signInWithRedirect(auth, googleProvider)
+        // Page will redirect — auth handled by getRedirectResult on return
+      } else {
+        await signInWithPopup(auth, googleProvider)
+      }
     } catch (e) {
-      if (e.code !== 'auth/popup-closed-by-user') setError('Google sign-in failed. Try again.')
+      if (e.code !== 'auth/popup-closed-by-user') {
+        setError('Google sign-in failed. Try again.')
+      }
     }
   }
 
@@ -89,6 +112,7 @@ export default function AuthScreen() {
       <div className={styles.card}>
         <div className={styles.logo}>Sentimo</div>
         <div className={styles.tagline}>Bawat piso, sinusubaybayan.</div>
+        {onBack && <button className={styles.backLink} onClick={onBack} style={{ marginBottom: '1rem' }}>← Back</button>}
 
         {!showForgot ? (
           <>

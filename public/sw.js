@@ -1,5 +1,5 @@
-const CACHE = 'sentimo-v1'
-const ASSETS = ['/', '/index.html', '/manifest.json', '/favicon.svg']
+const CACHE = 'sentimo-v2'
+const ASSETS = ['/manifest.json', '/favicon.svg']
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)))
@@ -14,11 +14,33 @@ self.addEventListener('activate', e => {
 })
 
 self.addEventListener('fetch', e => {
-  // Network first for API calls, cache first for assets
-  if (e.request.url.includes('firestore') || e.request.url.includes('firebase') || e.request.url.includes('googleapis')) {
-    return // Let Firebase handle its own requests
+  const url = new URL(e.request.url)
+
+  // Never cache: Firebase, Google auth, API calls, HTML pages
+  if (
+    url.hostname.includes('firebase') ||
+    url.hostname.includes('google') ||
+    url.hostname.includes('googleapis') ||
+    url.hostname.includes('gstatic') ||
+    url.hostname.includes('firebaseapp') ||
+    e.request.method !== 'GET' ||
+    e.request.headers.get('accept')?.includes('text/html')
+  ) {
+    return // Let browser handle normally
   }
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  )
+
+  // Cache-first for static assets (JS, CSS, fonts)
+  if (url.pathname.match(/\.(js|css|woff2?|ttf|svg|png|ico)$/)) {
+    e.respondWith(
+      caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+        const clone = res.clone()
+        caches.open(CACHE).then(c => c.put(e.request, clone))
+        return res
+      }))
+    )
+    return
+  }
+
+  // Network-first for everything else
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)))
 })

@@ -205,10 +205,15 @@ export default function Settings({ user, data, profile, symbol }) {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+            {/* PHP reference card — always on top */}
+            <div style={{ background: 'var(--accent-glow)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', gridColumn: '1 / -1' }}>
+              <div style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4, fontWeight: 600 }}>Base currency</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, color: 'var(--accent)', fontWeight: 700 }}>₱1.00 PHP</div>
+            </div>
             {['USD','EUR','GBP','JPY','SGD','AUD','CAD','HKD','KRW','CNY'].map(code => (
               rates[code] && (
                 <div key={code} style={{ background: 'var(--surface2)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>1 PHP →</div>
+                  <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>1 PHP =</div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>
                     {rates[code].toFixed(4)} {code}
                   </div>
