@@ -2,7 +2,8 @@
 
 /* SIDEBAR — desktop */
 .sidebar { width: 220px; min-width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 1.5rem 0; }
-.logo { font-family: var(--font-display); font-size: 24px; color: var(--accent); padding: 0 1.25rem 1.5rem; letter-spacing: -0.5px; }
+.sidebarTop { display: flex; align-items: center; justify-content: space-between; padding: 0 1.25rem 1.5rem; }
+.logo { font-family: var(--font-display); font-size: 24px; color: var(--accent); letter-spacing: -0.5px; }
 .navSection { font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 0 1.25rem; margin-bottom: 6px; margin-top: 1rem; }
 .navItem { display: flex; align-items: center; gap: 10px; padding: 9px 1.25rem; font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.15s; border-left: 2px solid transparent; }
 .navItem:hover { color: var(--text); background: var(--surface2); }
@@ -15,10 +16,21 @@
 .userEmail { font-size: 11px; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
 .btnLogout { background: none; border: none; color: var(--text3); font-size: 11px; cursor: pointer; padding: 0; }
 .btnLogout:hover { color: var(--red); }
+.themeToggle { background: none; border: none; color: var(--text3); font-size: 11px; cursor: pointer; padding: 0; margin-top: 6px; display: block; }
+.themeToggle:hover { color: var(--accent); }
 .main { flex: 1; overflow-y: auto; background: var(--bg); }
 
-/* BOTTOM NAV — mobile only */
-.bottomNav { display: none; }
+/* FLOATING ACTION BUTTON */
+.fab { position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--red); color: #fff; border: none; font-size: 28px; font-weight: 700; cursor: pointer; z-index: 90; box-shadow: 0 4px 16px rgba(255,83,112,0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.15s, box-shadow 0.15s; }
+.fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(255,83,112,0.5); }
+@media (min-width: 769px) { .fab { bottom: 24px; right: 24px; } }
+
+/* QUICK ADD OVERLAY */
+.quickAddOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 300; display: flex; align-items: flex-end; justify-content: center; }
+@media (min-width: 640px) { .quickAddOverlay { align-items: center; } }
+.quickAddPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: 100%; max-width: 100%; max-height: 90vh; overflow-y: auto; }
+@media (min-width: 640px) { .quickAddPanel { border-radius: var(--radius-lg); max-width: 420px; } }
+.quickAddHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
 
 /* MOBILE */
 @media (max-width: 768px) {

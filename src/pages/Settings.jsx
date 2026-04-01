@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { fsDel, fsSetProfile } from '../lib/firestore'
 import { fmt, CURRENCIES, PAY_SCHEDULES } from '../lib/utils'
+import { generateMonthlyReport } from '../lib/report'
 import styles from './Page.module.css'
 import settStyles from './Settings.module.css'
 
@@ -13,6 +14,8 @@ export default function Settings({ user, data, profile, symbol }) {
   const [resetting, setResetting] = useState(false)
   const [resetDone, setResetDone] = useState(false)
   const [exportDone, setExportDone] = useState(false)
+  const [rates, setRates] = useState(null)
+  const [ratesLoading, setRatesLoading] = useState(false)
 
   useEffect(() => {
     if (profile && Object.keys(profile).length > 0) {
@@ -23,6 +26,17 @@ export default function Settings({ user, data, profile, symbol }) {
       })
     }
   }, [profile])
+
+  async function fetchRates() {
+    setRatesLoading(true)
+    try {
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/PHP')
+      const json = await res.json()
+      setRates(json.rates)
+    } catch {
+      setRates(null)
+    } finally { setRatesLoading(false) }
+  }
 
   function setPF(k, v) { setProfileForm(f => ({ ...f, [k]: v })) }
 
@@ -63,7 +77,7 @@ export default function Settings({ user, data, profile, symbol }) {
   }
 
   async function handleReset() {
-    const confirmed = window.confirm('This will permanently delete ALL your transactions, bills, and savings goals. This cannot be undone. Are you sure?')
+    const confirmed = window.confirm('Reset ALL data? This permanently deletes all transactions, bills, and savings goals. Cannot be undone.')
     if (!confirmed) return
     setResetting(true)
     try {
@@ -151,9 +165,13 @@ export default function Settings({ user, data, profile, symbol }) {
         <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
           Download a copy of all your transactions, bills, and savings goals.
         </p>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Export as CSV'}</button>
           <button className={settStyles.btnExport} onClick={exportJSON}>↓ Export as JSON</button>
+          <button className={settStyles.btnExport} onClick={() => {
+            const now = new Date()
+            generateMonthlyReport(data, profile, now.getFullYear(), now.getMonth(), s)
+          }}>🖨 Monthly Report PDF</button>
         </div>
       </div>
 
@@ -171,6 +189,35 @@ export default function Settings({ user, data, profile, symbol }) {
         <button className={settStyles.btnReset} onClick={handleReset} disabled={resetting}>
           {resetting ? 'Resetting...' : 'Reset all data'}
         </button>
+      </div>
+
+      {/* EXCHANGE RATES */}
+      <div className={styles.card}>
+        <div className={styles.cardTitle}>
+          Live Exchange Rates
+          <button className={settStyles.btnExport} onClick={fetchRates} disabled={ratesLoading} style={{ fontSize: 12, padding: '5px 12px' }}>
+            {ratesLoading ? 'Loading...' : '↻ Refresh'}
+          </button>
+        </div>
+        {!rates ? (
+          <div style={{ fontSize: 13, color: 'var(--text3)' }}>
+            Click Refresh to load current PHP exchange rates.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+            {['USD','EUR','GBP','JPY','SGD','AUD','CAD','HKD','KRW','CNY'].map(code => (
+              rates[code] && (
+                <div key={code} style={{ background: 'var(--surface2)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>1 PHP →</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>
+                    {rates[code].toFixed(4)} {code}
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
+        )}
+        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8 }}>Source: exchangerate-api.com · Rates are indicative</div>
       </div>
 
       {/* ABOUT */}

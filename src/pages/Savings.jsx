@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { fmt, today } from '../lib/utils'
+import { fmt, today, confirmDelete, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 
 export default function Savings({ user, data, symbol }) {
@@ -60,7 +60,7 @@ export default function Savings({ user, data, symbol }) {
                 <div className={styles.goalName}>{g.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 12, color: 'var(--text3)' }}>{pct}%</span>
-                  <button className={styles.delBtn} onClick={() => fsDel(user.uid, 'goals', g._id)}>✕</button>
+                  <button className={styles.delBtn} onClick={() => confirmDelete(g.name) && fsDel(user.uid, 'goals', g._id)}>✕</button>
                 </div>
               </div>
               <div className={styles.progressTrack}>

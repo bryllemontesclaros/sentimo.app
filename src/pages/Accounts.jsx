@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { fmt } from '../lib/utils'
+import { fmt, confirmDelete, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 import accStyles from './Accounts.module.css'
 
@@ -47,7 +47,7 @@ export default function Accounts({ user, data, symbol }) {
     setShowModal(false); setEditAccount(null); setForm(EMPTY_FORM)
   }
 
-  async function handleDel(id) { await fsDel(user.uid, 'accounts', id) }
+  async function handleDel(id, name) { if (!confirmDelete(name)) return; await fsDel(user.uid, 'accounts', id) }
 
   async function handleBalanceUpdate(acc) {
     const val = parseFloat(editBalance[acc._id])
@@ -98,7 +98,7 @@ export default function Accounts({ user, data, symbol }) {
                   </div>
                   <div className={accStyles.accountActions}>
                     <button className={accStyles.editBtn} onClick={() => openEdit(acc)}>Edit</button>
-                    <button className={accStyles.delBtn} onClick={() => handleDel(acc._id)}>✕</button>
+                    <button className={accStyles.delBtn} onClick={() => handleDel(acc._id, acc.name)}>✕</button>
                   </div>
                 </div>
 

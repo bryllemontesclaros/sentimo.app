@@ -1,0 +1,30 @@
+.searchRow { position: relative; margin-bottom: 10px; }
+.searchInput { width: 100%; padding: 10px 36px 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 14px; outline: none; font-family: var(--font-body); }
+.searchInput:focus { border-color: var(--accent); }
+.clearSearch { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 4px; }
+
+.filters { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.filter { padding: 7px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 12px; outline: none; font-family: var(--font-body); cursor: pointer; }
+.filter:focus { border-color: var(--accent); }
+
+.summary { display: flex; align-items: center; gap: 10px; font-size: 13px; font-family: var(--font-mono); margin-bottom: 10px; flex-wrap: wrap; }
+
+.txRow { display: flex; align-items: center; gap: 12px; padding: 12px 1.25rem; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.txRow:last-child { border-bottom: none; }
+.txRow:hover { background: var(--surface2); }
+.txIcon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.txInfo { flex: 1; min-width: 0; }
+.txDesc { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.txMeta { display: flex; align-items: center; gap: 8px; margin-top: 2px; flex-wrap: wrap; }
+.txCat { font-size: 11px; color: var(--text3); }
+.txDate { font-size: 11px; color: var(--text3); }
+.txRecur { font-size: 10px; background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-weight: 600; }
+.txRight { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.txAmount { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+.delBtn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 13px; padding: 4px 6px; border-radius: 4px; min-height: 28px; min-width: 28px; }
+.delBtn:hover { color: var(--red); background: var(--red-dim); }
+
+@media (max-width: 480px) {
+  .filters { gap: 6px; }
+  .filter { font-size: 11px; padding: 6px 8px; }
+}

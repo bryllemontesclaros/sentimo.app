@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fsAdd, fsDel } from '../lib/firestore'
-import { fmt, today, RECUR_OPTIONS } from '../lib/utils'
+import { fmt, today, RECUR_OPTIONS, confirmDelete, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 
 export default function Expenses({ user, data, symbol }) {
@@ -10,7 +10,7 @@ export default function Expenses({ user, data, symbol }) {
 
   async function handleAdd() {
     if (!form.desc || !form.amount || !form.date) return alert('Please fill all fields')
-    await fsAdd(user.uid, 'expenses', { ...form, amount: parseFloat(form.amount), type: 'expense' })
+    const err = validateAmount(form.amount); if (err) return alert(err); await fsAdd(user.uid, 'expenses', { ...form, amount: parseFloat(form.amount), type: 'expense' })
     setForm(f => ({ ...f, desc: '', amount: '' }))
   }
 
@@ -58,7 +58,7 @@ export default function Expenses({ user, data, symbol }) {
                     <td>{r.date}</td>
                     <td>{r.recur ? <span className={`${styles.badge} ${styles.badgeRecurring}`}>{RECUR_OPTIONS.find(o => o.value === r.recur)?.label || r.recur}</span> : '—'}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--red)' }}>{fmt(r.amount, s)}</td>
-                    <td><button className={styles.delBtn} onClick={() => fsDel(user.uid, 'expenses', r._id)}>✕</button></td>
+                    <td><button className={styles.delBtn} onClick={() => confirmDelete(r.desc) && fsDel(user.uid, 'expenses', r._id)}>✕</button></td>
                   </tr>
                 ))}
             </tbody>

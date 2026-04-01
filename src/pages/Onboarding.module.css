@@ -1,0 +1,41 @@
+.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); z-index: 100; padding: 1rem; }
+.card { width: 100%; max-width: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
+
+.dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 2rem; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+.dotActive { background: var(--accent); }
+
+.stepWrap { display: flex; flex-direction: column; gap: 12px; }
+.logo { font-family: var(--font-display); font-size: 28px; color: var(--accent); letter-spacing: -1px; }
+.stepEmoji { font-size: 40px; text-align: center; }
+.stepTitle { font-family: var(--font-display); font-size: 24px; color: var(--text); letter-spacing: -0.5px; }
+.stepSub { font-size: 14px; color: var(--text3); line-height: 1.6; }
+
+.featureList { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+.feature { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text2); }
+.featureIcon { font-size: 20px; }
+
+.inputGroup { display: flex; flex-direction: column; gap: 6px; }
+.inputGroup label { font-size: 12px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+.inputGroup input, .inputGroup select { padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 15px; outline: none; transition: border 0.2s; font-family: var(--font-body); }
+.inputGroup input:focus, .inputGroup select:focus { border-color: var(--accent); }
+
+.currencyGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.currencyBtn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px; border: 2px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); cursor: pointer; transition: all 0.15s; font-family: var(--font-body); }
+.currencyBtn:hover { border-color: var(--border2); }
+.currencyBtnActive { border-color: var(--accent) !important; background: var(--accent-glow) !important; }
+.currencySymbol { font-size: 18px; font-weight: 700; color: var(--text); font-family: var(--font-mono); }
+.currencyCode { font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; }
+.currencyBtnActive .currencySymbol { color: var(--accent); }
+
+.summary { background: var(--surface2); border-radius: var(--radius-sm); padding: 1rem; display: flex; flex-direction: column; gap: 10px; }
+.summaryRow { display: flex; justify-content: space-between; font-size: 13px; }
+.summaryRow span:first-child { color: var(--text3); }
+.summaryRow span:last-child { color: var(--text); font-weight: 500; }
+
+.btnRow { display: flex; gap: 8px; margin-top: 4px; }
+.btnSkip { flex: 1; padding: 11px; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; }
+.btnNext { flex: 2; padding: 11px; background: var(--accent); color: #0a0a0f; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
+.btnNext:hover { opacity: 0.9; }
+.btnFinish { width: 100%; padding: 13px; background: var(--accent); color: #0a0a0f; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; cursor: pointer; font-family: var(--font-body); margin-top: 4px; }
+.btnFinish:disabled { opacity: 0.6; cursor: not-allowed; }

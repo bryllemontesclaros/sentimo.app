@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { fmt, RECUR_OPTIONS } from '../lib/utils'
+import { fmt, RECUR_OPTIONS, confirmDelete, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 
 const BILL_FREQS = RECUR_OPTIONS.filter(o => o.value !== '' && o.value !== 'daily')
@@ -65,7 +65,7 @@ export default function Bills({ user, data, symbol }) {
                         {r.paid ? 'Paid' : 'Unpaid'}
                       </button>
                     </td>
-                    <td><button className={styles.delBtn} onClick={() => fsDel(user.uid, 'bills', r._id)}>✕</button></td>
+                    <td><button className={styles.delBtn} onClick={() => confirmDelete(r.name) && fsDel(user.uid, 'bills', r._id)}>✕</button></td>
                   </tr>
                 ))}
             </tbody>

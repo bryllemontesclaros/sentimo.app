@@ -47,3 +47,13 @@ export function getInitials(name) {
 export function getCurrencySymbol(code) {
   return CURRENCIES.find(c => c.code === code)?.symbol || '₱'
 }
+
+export function confirmDelete(name = 'this item') {
+  return window.confirm(`Delete ${name}? This cannot be undone.`)
+}
+
+export function validateAmount(val, fieldName = 'Amount') {
+  const n = parseFloat(val)
+  if (isNaN(n) || n <= 0) return `${fieldName} must be a positive number.`
+  return null
+}
