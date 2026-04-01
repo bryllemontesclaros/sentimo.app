@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signInWithPopup, updateProfile, sendPasswordResetEmail
+  signInWithPopup, signInWithRedirect,
+  updateProfile, sendPasswordResetEmail
 } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
 import styles from './AuthScreen.module.css'
@@ -15,6 +16,8 @@ const ERROR_MSGS = {
   'auth/invalid-email': 'Invalid email address.',
 }
 
+const isMobile = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -24,7 +27,7 @@ const GoogleIcon = () => (
   </svg>
 )
 
-export default function AuthScreen({ onBack }) {
+export default function AuthScreen({ onBack, redirectKey }) {
   const [tab, setTab] = useState('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -64,8 +67,15 @@ export default function AuthScreen({ onBack }) {
   async function handleGoogle() {
     setError('')
     try {
-      await signInWithPopup(auth, googleProvider)
+      if (isMobile()) {
+        // Set flag so App.jsx knows to wait for redirect result
+        if (redirectKey) sessionStorage.setItem(redirectKey, '1')
+        await signInWithRedirect(auth, googleProvider)
+      } else {
+        await signInWithPopup(auth, googleProvider)
+      }
     } catch (e) {
+      if (redirectKey) sessionStorage.removeItem(redirectKey)
       if (e.code !== 'auth/popup-closed-by-user') {
         setError('Google sign-in failed. Try again.')
       }
