@@ -1,8 +1,19 @@
 import { useState } from 'react'
-import { fsAdd } from '../lib/firestore'
+import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
 import { fmt, today } from '../lib/utils'
 import styles from './Page.module.css'
 import calStyles from './Calendar.module.css'
+
+const CATS_INCOME = ['Salary','Freelance','Business','Investment','13th Month','Bonus','Other']
+const CATS_EXPENSE = ['Food & Dining','Transport','Shopping','Health','Entertainment','Personal Care','Bills','Education','Other']
+const RECUR_OPTIONS = [
+  { value: '', label: 'None' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'semi-monthly', label: 'Semi-monthly' },
+  { value: 'monthly', label: 'Monthly' },
+]
+const EMPTY_FORM = { desc: '', amount: '', type: 'income', cat: 'Salary', recur: '' }
 
 export default function Calendar({ user, data }) {
   const now = new Date()
@@ -10,7 +21,8 @@ export default function Calendar({ user, data }) {
   const [month, setMonth] = useState(now.getMonth())
   const [selected, setSelected] = useState(null)
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ desc: '', amount: '', type: 'income', cat: 'Salary', recur: '' })
+  const [editTx, setEditTx] = useState(null)
+  const [form, setForm] = useState(EMPTY_FORM)
 
   const todayStr = today()
   const label = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' })
@@ -21,7 +33,17 @@ export default function Calendar({ user, data }) {
   function prev() { if (month === 0) { setMonth(11); setYear(y => y - 1) } else setMonth(m => m - 1) }
   function next() { if (month === 11) { setMonth(0); setYear(y => y + 1) } else setMonth(m => m + 1) }
 
-  function dateStr(d) { return `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}` }
+  function set(k, v) {
+    setForm(f => {
+      const updated = { ...f, [k]: v }
+      if (k === 'type') updated.cat = v === 'income' ? 'Salary' : 'Food & Dining'
+      return updated
+    })
+  }
+
+  function dateStr(d) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  }
 
   function getDayTx(d) {
     const ds = dateStr(d)
@@ -32,22 +54,50 @@ export default function Calendar({ user, data }) {
     }
   }
 
-  async function handleAdd() {
-    if (!form.desc || !form.amount) return alert('Please fill all fields')
-    const col = form.type === 'income' ? 'income' : 'expenses'
-    await fsAdd(user.uid, col, { ...form, amount: parseFloat(form.amount), date: selected, type: form.type })
-    setForm(f => ({ ...f, desc: '', amount: '' }))
-    setShowModal(false)
+  function openAdd(date) {
+    setEditTx(null)
+    setForm({ ...EMPTY_FORM })
+    setSelected(date)
+    setShowModal(true)
   }
 
-  const selectedTx = selected ? [...(data.income.filter(t => t.date === selected)), ...(data.expenses.filter(t => t.date === selected))] : []
+  function openEdit(tx) {
+    setEditTx(tx)
+    setForm({ desc: tx.desc || '', amount: tx.amount || '', type: tx.type || 'income', cat: tx.cat || '', recur: tx.recur || '' })
+    setShowModal(true)
+  }
+
+  async function handleSave() {
+    if (!form.desc || !form.amount) return alert('Please fill all fields')
+    if (editTx) {
+      const origCol = editTx.type === 'income' ? 'income' : 'expenses'
+      await fsUpdate(user.uid, origCol, editTx._id, { desc: form.desc, amount: parseFloat(form.amount), cat: form.cat, recur: form.recur })
+    } else {
+      const col = form.type === 'income' ? 'income' : 'expenses'
+      await fsAdd(user.uid, col, { desc: form.desc, amount: parseFloat(form.amount), date: selected, cat: form.cat, recur: form.recur, type: form.type })
+    }
+    setShowModal(false); setEditTx(null); setForm(EMPTY_FORM)
+  }
+
+  async function handleDelete(tx) {
+    const col = tx.type === 'income' ? 'income' : 'expenses'
+    await fsDel(user.uid, col, tx._id)
+  }
+
+  const selectedTx = selected
+    ? [...data.income.filter(t => t.date === selected), ...data.expenses.filter(t => t.date === selected)]
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+    : []
+
+  const cats = form.type === 'income' ? CATS_INCOME : CATS_EXPENSE
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Calendar</div>
-        <div className={styles.sub}>Click any day to view or add transactions</div>
+        <div className={styles.sub}>Click a day to view · Double-click to add</div>
       </div>
+
       <div className={styles.card}>
         <div className={calStyles.calHeader}>
           <div className={calStyles.nav}>
@@ -55,7 +105,7 @@ export default function Calendar({ user, data }) {
             <div className={calStyles.monthLabel}>{label}</div>
             <button className={calStyles.navBtn} onClick={next}>Next →</button>
           </div>
-          <button className={styles.btnAdd} style={{ width: 'auto', padding: '8px 18px' }} onClick={() => { setSelected(todayStr); setShowModal(true) }}>+ Add transaction</button>
+          <button className={styles.btnAdd} style={{ width: 'auto', padding: '8px 18px' }} onClick={() => openAdd(todayStr)}>+ Add transaction</button>
         </div>
 
         <div className={calStyles.dayNames}>
@@ -75,7 +125,11 @@ export default function Calendar({ user, data }) {
             const total = income.reduce((s, t) => s + (t.amount || 0), 0) - expenses.reduce((s, t) => s + (t.amount || 0), 0)
             const hasAny = income.length || expenses.length
             return (
-              <div key={d} className={`${calStyles.cell} ${ds === todayStr ? calStyles.today : ''} ${selected === ds ? calStyles.selectedCell : ''}`} onClick={() => setSelected(ds)}>
+              <div key={d}
+                className={`${calStyles.cell} ${ds === todayStr ? calStyles.today : ''} ${selected === ds ? calStyles.selectedCell : ''}`}
+                onClick={() => setSelected(ds)}
+                onDoubleClick={() => openAdd(ds)}
+              >
                 <div className={calStyles.dateNum}>{d}</div>
                 <div className={calStyles.dots}>
                   {income.length > 0 && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
@@ -94,53 +148,110 @@ export default function Calendar({ user, data }) {
         </div>
       </div>
 
+      {/* DAY PANEL */}
       {selected && (
         <div className={styles.card}>
           <div className={styles.cardTitle}>
-            {selected}
-            <button className={styles.btnAdd} style={{ width: 'auto', padding: '6px 14px', fontSize: 12 }} onClick={() => setShowModal(true)}>+ Add</button>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{selected}</span>
+            <button className={styles.btnAdd} style={{ width: 'auto', padding: '6px 14px', fontSize: 12 }} onClick={() => openAdd(selected)}>+ Add</button>
           </div>
           {!selectedTx.length
-            ? <div className={styles.empty}>No transactions on this day.</div>
+            ? <div className={styles.empty}>No transactions on this day. Click + Add to add one.</div>
             : selectedTx.map(t => (
-              <div key={t._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: t.type === 'income' ? 'var(--accent-glow)' : 'var(--red-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.type === 'income' ? 'var(--accent)' : 'var(--red)' }}>{t.type === 'income' ? '↑' : '↓'}</div>
-                  <div><div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{t.desc}</div><div style={{ fontSize: 11, color: 'var(--text3)' }}>{t.cat}</div></div>
+              <div key={t._id} className={calStyles.txRow}>
+                <div className={calStyles.txLeft}>
+                  <div className={calStyles.txIcon} style={{ background: t.type === 'income' ? 'var(--accent-glow)' : 'var(--red-dim)', color: t.type === 'income' ? 'var(--accent)' : 'var(--red)' }}>
+                    {t.type === 'income' ? '↑' : '↓'}
+                  </div>
+                  <div>
+                    <div className={calStyles.txDesc}>{t.desc}</div>
+                    <div className={calStyles.txMeta}>
+                      {t.cat}
+                      {t.recur && <span className={calStyles.recurBadge}>{t.recur}</span>}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: t.type === 'income' ? 'var(--accent)' : 'var(--red)' }}>{t.type === 'income' ? '+' : '-'}{fmt(t.amount)}</div>
+                <div className={calStyles.txRight}>
+                  <div className={calStyles.txAmount} style={{ color: t.type === 'income' ? 'var(--accent)' : 'var(--red)' }}>
+                    {t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
+                  </div>
+                  <div className={calStyles.txActions}>
+                    <button className={calStyles.editBtn} onClick={() => openEdit(t)}>Edit</button>
+                    <button className={calStyles.delBtnSm} onClick={() => handleDelete(t)}>✕</button>
+                  </div>
+                </div>
               </div>
             ))}
         </div>
       )}
 
+      {/* ADD / EDIT MODAL */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '1.75rem', width: '100%', maxWidth: 480 }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '1.75rem', width: '100%', maxWidth: 500 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--text)' }}>Add transaction — {selected}</div>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 20, cursor: 'pointer' }}>✕</button>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--text)' }}>
+                {editTx ? 'Edit transaction' : `Add — ${selected}`}
+              </div>
+              <button onClick={() => { setShowModal(false); setEditTx(null) }} style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 20, cursor: 'pointer' }}>✕</button>
             </div>
-            <div className={`${styles.formRow} ${styles.col2}`}>
-              <div className={styles.formGroup}><label>Type</label>
-                <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                  <option value="income">Income</option>
-                  <option value="expense">Expense</option>
+
+            {!editTx && (
+              <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
+                <div className={styles.formGroup}>
+                  <label>Type</label>
+                  <select value={form.type} onChange={e => set('type', e.target.value)}>
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Category</label>
+                  <select value={form.cat} onChange={e => set('cat', e.target.value)}>
+                    {cats.map(o => <option key={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {editTx && (
+              <div className={styles.formGroup} style={{ marginBottom: 12 }}>
+                <label>Category</label>
+                <select value={form.cat} onChange={e => set('cat', e.target.value)}>
+                  {(editTx.type === 'income' ? CATS_INCOME : CATS_EXPENSE).map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
-              <div className={styles.formGroup}><label>Category</label>
-                <select value={form.cat} onChange={e => setForm(f => ({ ...f, cat: e.target.value }))}>
-                  {['Salary','Freelance','Food & Dining','Transport','Shopping','Bills','Health','Other'].map(o => <option key={o}>{o}</option>)}
-                </select>
+            )}
+
+            <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
+              <div className={styles.formGroup}>
+                <label>Description</label>
+                <input placeholder="What is this?" value={form.desc} onChange={e => set('desc', e.target.value)} />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Amount (₱)</label>
+                <input type="number" min="0" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} />
               </div>
             </div>
-            <div className={`${styles.formRow} ${styles.col2}`}>
-              <div className={styles.formGroup}><label>Description</label><input placeholder="What is this?" value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} /></div>
-              <div className={styles.formGroup}><label>Amount (₱)</label><input type="number" placeholder="0.00" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} /></div>
+
+            <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
+              <label>Recurrence</label>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+                {RECUR_OPTIONS.map(opt => (
+                  <button key={opt.value} onClick={() => set('recur', opt.value)} style={{
+                    padding: '5px 14px', borderRadius: 20, border: '1px solid',
+                    borderColor: form.recur === opt.value ? 'var(--purple)' : 'var(--border)',
+                    background: form.recur === opt.value ? 'var(--purple-dim)' : 'none',
+                    color: form.recur === opt.value ? 'var(--purple)' : 'var(--text2)',
+                    fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-body)',
+                  }}>{opt.label}</button>
+                ))}
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: '1.25rem' }}>
-              <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: '9px', background: 'none', border: '1px solid var(--border)', color: 'var(--text2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAdd} className={styles.btnAdd} style={{ flex: 2 }}>Save transaction</button>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { setShowModal(false); setEditTx(null) }} style={{ flex: 1, padding: '9px', background: 'none', border: '1px solid var(--border)', color: 'var(--text2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleSave} className={styles.btnAdd} style={{ flex: 2 }}>{editTx ? 'Save changes' : 'Add transaction'}</button>
             </div>
           </div>
         </div>

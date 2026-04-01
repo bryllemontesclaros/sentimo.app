@@ -19,3 +19,17 @@
 .dotExpense { background: var(--red); }
 .dotBill { background: var(--amber); }
 .amount { font-size: 10px; font-family: var(--font-mono); color: var(--text3); margin-top: 2px; }
+.txRow { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.txRow:last-child { border-bottom: none; }
+.txLeft { display: flex; align-items: center; gap: 10px; }
+.txIcon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.txDesc { font-size: 13px; font-weight: 500; color: var(--text); }
+.txMeta { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.recurBadge { background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 8px; font-size: 10px; font-weight: 600; }
+.txRight { display: flex; align-items: center; gap: 10px; }
+.txAmount { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+.txActions { display: flex; align-items: center; gap: 4px; }
+.editBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 3px 10px; font-size: 11px; cursor: pointer; font-family: var(--font-body); }
+.editBtn:hover { border-color: var(--accent); color: var(--accent); }
+.delBtnSm { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 13px; padding: 3px 6px; border-radius: 4px; }
+.delBtnSm:hover { color: var(--red); background: var(--red-dim); }

@@ -9,6 +9,7 @@ import Income from './Income'
 import Expenses from './Expenses'
 import Bills from './Bills'
 import Savings from './Savings'
+import Settings from './Settings'
 import styles from './AppShell.module.css'
 
 export default function AppShell({ user }) {
@@ -34,9 +35,10 @@ export default function AppShell({ user }) {
     { id: 'expenses', label: 'Expenses', icon: '↓', section: null },
     { id: 'bills', label: 'Bills', icon: '◷', section: null },
     { id: 'savings', label: 'Savings Goals', icon: '◎', section: null },
+    { id: 'settings', label: 'Settings', icon: '⚙', section: 'Account' },
   ]
 
-  const pages = { dashboard: Dashboard, calendar: Calendar, income: Income, expenses: Expenses, bills: Bills, savings: Savings }
+  const pages = { dashboard: Dashboard, calendar: Calendar, income: Income, expenses: Expenses, bills: Bills, savings: Savings, settings: Settings }
   const PageComponent = pages[page]
 
   return (
