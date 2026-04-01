@@ -1,21 +1,15 @@
 import { useState } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { fmt, today } from '../lib/utils'
+import { fmt, today, RECUR_OPTIONS } from '../lib/utils'
 import styles from './Page.module.css'
 import calStyles from './Calendar.module.css'
 
 const CATS_INCOME = ['Salary','Freelance','Business','Investment','13th Month','Bonus','Other']
 const CATS_EXPENSE = ['Food & Dining','Transport','Shopping','Health','Entertainment','Personal Care','Bills','Education','Other']
-const RECUR_OPTIONS = [
-  { value: '', label: 'None' },
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'semi-monthly', label: 'Semi-monthly' },
-  { value: 'monthly', label: 'Monthly' },
-]
 const EMPTY_FORM = { desc: '', amount: '', type: 'income', cat: 'Salary', recur: '' }
 
-export default function Calendar({ user, data }) {
+export default function Calendar({ user, data, symbol }) {
+  const s = symbol || '₱'
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
@@ -136,7 +130,7 @@ export default function Calendar({ user, data }) {
                   {expenses.length > 0 && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
                   {bills.length > 0 && <div className={`${calStyles.dot} ${calStyles.dotBill}`} />}
                 </div>
-                {hasAny && <div className={calStyles.amount}>{total >= 0 ? '+' : ''}{fmt(total)}</div>}
+                {hasAny && <div className={calStyles.amount}>{total >= 0 ? '+' : ''}{fmt(total, s)}</div>}
               </div>
             )
           })}
@@ -173,7 +167,7 @@ export default function Calendar({ user, data }) {
                 </div>
                 <div className={calStyles.txRight}>
                   <div className={calStyles.txAmount} style={{ color: t.type === 'income' ? 'var(--accent)' : 'var(--red)' }}>
-                    {t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
+                    {t.type === 'income' ? '+' : '-'}{fmt(t.amount, s)}
                   </div>
                   <div className={calStyles.txActions}>
                     <button className={calStyles.editBtn} onClick={() => openEdit(t)}>Edit</button>

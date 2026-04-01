@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { fmt } from '../lib/utils'
+import { fmt, RECUR_OPTIONS } from '../lib/utils'
 import styles from './Page.module.css'
 
-export default function Bills({ user, data }) {
+const BILL_FREQS = RECUR_OPTIONS.filter(o => o.value !== '' && o.value !== 'daily')
+
+export default function Bills({ user, data, symbol }) {
+  const s = symbol || '₱'
   const [form, setForm] = useState({ name: '', amount: '', due: '', cat: 'Electric', freq: 'monthly' })
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
@@ -23,7 +26,7 @@ export default function Bills({ user, data }) {
         <div className={styles.cardTitle}>Add bill</div>
         <div className={`${styles.formRow} ${styles.col3}`}>
           <div className={styles.formGroup}><label>Bill name</label><input placeholder="e.g. Meralco" value={form.name} onChange={e => set('name', e.target.value)} /></div>
-          <div className={styles.formGroup}><label>Amount (₱)</label><input type="number" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} /></div>
+          <div className={styles.formGroup}><label>Amount ({s})</label><input type="number" min="0" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} /></div>
           <div className={styles.formGroup}><label>Due day (1–31)</label><input type="number" min={1} max={31} placeholder="e.g. 15" value={form.due} onChange={e => set('due', e.target.value)} /></div>
         </div>
         <div className={`${styles.formRow} ${styles.col3}`}>
@@ -34,9 +37,7 @@ export default function Bills({ user, data }) {
           </div>
           <div className={styles.formGroup}><label>Frequency</label>
             <select value={form.freq} onChange={e => set('freq', e.target.value)}>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="annual">Annual</option>
+              {BILL_FREQS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
           <div className={styles.formGroup} style={{ justifyContent: 'flex-end' }}>
@@ -57,8 +58,8 @@ export default function Bills({ user, data }) {
                     <td style={{ color: 'var(--text)' }}>{r.name}</td>
                     <td><span className={`${styles.badge} ${styles.badgeBill}`}>{r.cat}</span></td>
                     <td>Day {r.due}</td>
-                    <td>{r.freq}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--amber)' }}>{fmt(r.amount)}</td>
+                    <td>{BILL_FREQS.find(o => o.value === r.freq)?.label || r.freq}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--amber)' }}>{fmt(r.amount, s)}</td>
                     <td>
                       <button onClick={() => fsUpdate(user.uid, 'bills', r._id, { paid: !r.paid })} style={{ background: r.paid ? 'var(--accent-glow)' : 'var(--red-dim)', color: r.paid ? 'var(--accent)' : 'var(--red)', border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
                         {r.paid ? 'Paid' : 'Unpaid'}

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
-import { listenCol } from '../lib/firestore'
-import { getInitials } from '../lib/utils'
+import { listenCol, listenProfile } from '../lib/firestore'
+import { getInitials, getCurrencySymbol } from '../lib/utils'
 import Dashboard from './Dashboard'
 import Calendar from './Calendar'
 import Income from './Income'
@@ -15,6 +15,7 @@ import styles from './AppShell.module.css'
 export default function AppShell({ user }) {
   const [page, setPage] = useState('dashboard')
   const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [] })
+  const [profile, setProfile] = useState({})
 
   useEffect(() => {
     if (!user) return
@@ -24,9 +25,12 @@ export default function AppShell({ user }) {
       listenCol(uid, 'expenses', rows => setData(d => ({ ...d, expenses: rows }))),
       listenCol(uid, 'bills', rows => setData(d => ({ ...d, bills: rows }))),
       listenCol(uid, 'goals', rows => setData(d => ({ ...d, goals: rows }))),
+      listenProfile(uid, p => setProfile(p)),
     ]
     return () => unsubs.forEach(u => u())
   }, [user])
+
+  const symbol = getCurrencySymbol(profile.currency || 'PHP')
 
   const nav = [
     { id: 'dashboard', label: 'Dashboard', icon: '◈', section: 'Overview' },
@@ -65,7 +69,7 @@ export default function AppShell({ user }) {
         </div>
       </aside>
       <main className={styles.main}>
-        <PageComponent user={user} data={data} />
+        <PageComponent user={user} data={data} profile={profile} symbol={symbol} />
       </main>
     </div>
   )

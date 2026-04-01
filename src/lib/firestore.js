@@ -1,7 +1,7 @@
 import { db } from './firebase'
 import {
-  collection, addDoc, deleteDoc, updateDoc,
-  doc, query, orderBy, onSnapshot
+  collection, addDoc, deleteDoc, updateDoc, setDoc,
+  doc, query, orderBy, onSnapshot, getDoc
 } from 'firebase/firestore'
 
 export function userCol(uid, col) {
@@ -24,5 +24,15 @@ export function listenCol(uid, col, callback) {
   const q = query(userCol(uid, col), orderBy('createdAt', 'asc'))
   return onSnapshot(q, snap => {
     callback(snap.docs.map(d => ({ ...d.data(), _id: d.id })))
+  })
+}
+
+export async function fsSetProfile(uid, profile) {
+  return await setDoc(doc(db, 'users', uid, 'profile', 'main'), profile, { merge: true })
+}
+
+export function listenProfile(uid, callback) {
+  return onSnapshot(doc(db, 'users', uid, 'profile', 'main'), snap => {
+    callback(snap.exists() ? snap.data() : {})
   })
 }
