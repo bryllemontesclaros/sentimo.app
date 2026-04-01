@@ -1,26 +1,21 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { listenCol, listenProfile } from '../lib/firestore'
 import { getInitials, getCurrencySymbol } from '../lib/utils'
-import Dashboard from './Dashboard'
 import Calendar from './Calendar'
-import Income from './Income'
-import Expenses from './Expenses'
-import Bills from './Bills'
 import Savings from './Savings'
 import Accounts from './Accounts'
 import Breakdown from './Breakdown'
 import Budget from './Budget'
 import Settings from './Settings'
 import History from './History'
-import { useState } from 'react'
 import { useTheme } from '../lib/theme.jsx'
 import NotificationBell from '../components/NotificationBell'
 import styles from './AppShell.module.css'
 
 export default function AppShell({ user }) {
-  const [page, setPage] = useState('dashboard')
+  const [page, setPage] = useState('calendar')
   const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [], accounts: [], budgets: [] })
   const [profile, setProfile] = useState({})
 
@@ -42,24 +37,23 @@ export default function AppShell({ user }) {
   const symbol = getCurrencySymbol(profile.currency || 'PHP')
 
   const nav = [
-    { id: 'dashboard', label: 'Dashboard', icon: '◈', section: 'Overview' },
-    { id: 'calendar', label: 'Calendar', icon: '◻', section: null },
+    { id: 'calendar', label: 'Calendar', icon: '◻', section: 'Track' },
     { id: 'history', label: 'History', icon: '☰', section: null },
-    { id: 'breakdown', label: 'Breakdown', icon: '◑', section: 'Finance' },
+    { id: 'breakdown', label: 'Breakdown', icon: '◑', section: 'Analyse' },
     { id: 'budget', label: 'Budget', icon: '◎', section: null },
     { id: 'accounts', label: 'Accounts', icon: '◉', section: null },
     { id: 'savings', label: 'Savings Goals', icon: '◆', section: null },
     { id: 'settings', label: 'Settings', icon: '⚙', section: 'Account' },
   ]
 
-  const pages = { dashboard: Dashboard, calendar: Calendar, history: History, income: Income, expenses: Expenses, bills: Bills, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
-  const PageComponent = pages[page]
+  const pages = { calendar: Calendar, history: History, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
+  const PageComponent = pages[page] || Calendar
 
   const bottomNav = [
-    { id: 'dashboard', label: 'Home', icon: '◈' },
     { id: 'calendar', label: 'Calendar', icon: '◻' },
-    { id: 'history', label: 'History', icon: '☰' },
     { id: 'breakdown', label: 'Charts', icon: '◑' },
+    { id: 'budget', label: 'Budget', icon: '◎' },
+    { id: 'savings', label: 'Savings', icon: '◆' },
     { id: 'settings', label: 'Settings', icon: '⚙' },
   ]
 

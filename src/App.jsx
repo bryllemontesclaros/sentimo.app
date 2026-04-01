@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from './lib/firebase'
+import { onAuthStateChanged, getRedirectResult } from 'firebase/auth'
+import { auth, db } from './lib/firebase'
+import { doc, getDoc } from 'firebase/firestore'
 import LandingPage from './pages/LandingPage'
 import AuthScreen from './pages/AuthScreen'
 import AppShell from './pages/AppShell'
@@ -13,27 +14,31 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, u => {
+    // Handle Google redirect result first (mobile sign-in)
+    getRedirectResult(auth).catch(() => {})
+
+    const unsub = onAuthStateChanged(auth, async u => {
       if (u) {
-        const created = new Date(u.metadata.creationTime).getTime()
-        const lastSign = new Date(u.metadata.lastSignInTime).getTime()
-        setIsNew(Math.abs(created - lastSign) < 5000)
+        try {
+          // Use Firestore profile to detect new user — reliable on all devices
+          const profileDoc = await getDoc(doc(db, 'users', u.uid, 'profile', 'main'))
+          setIsNew(!profileDoc.exists())
+        } catch {
+          setIsNew(false)
+        }
       }
       setUser(u || null)
     })
     return unsub
   }, [])
 
-  // Always show loader while auth resolves
   if (user === undefined) return <PageLoader />
 
-  // Logged in — show app (ignore showAuth entirely)
   if (user) {
     if (isNew) return <Onboarding user={user} onDone={() => setIsNew(false)} />
     return <AppShell user={user} />
   }
 
-  // Not logged in
   if (showAuth) return <AuthScreen onBack={() => setShowAuth(false)} />
   return <LandingPage onGetStarted={() => setShowAuth(true)} />
 }

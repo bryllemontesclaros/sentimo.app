@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signInWithPopup, signInWithRedirect, getRedirectResult,
+  signInWithPopup, signInWithRedirect,
   updateProfile, sendPasswordResetEmail
 } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
@@ -36,19 +36,6 @@ export default function AuthScreen({ onBack }) {
   const [showForgot, setShowForgot] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const [resetLoading, setResetLoading] = useState(false)
-
-  // Handle redirect result on mobile after returning from Google
-  useEffect(() => {
-    getRedirectResult(auth).then(result => {
-      if (result?.user) {
-        // Auth state listener in App.jsx handles the rest
-      }
-    }).catch(e => {
-      if (e.code !== 'auth/no-redirect-result') {
-        setError(ERROR_MSGS[e.code] || 'Google sign-in failed. Try again.')
-      }
-    })
-  }, [])
 
   function set(field, val) { setForm(f => ({ ...f, [field]: val })) }
 
