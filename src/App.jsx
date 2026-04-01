@@ -18,18 +18,22 @@ export default function App() {
         const created = new Date(u.metadata.creationTime).getTime()
         const lastSign = new Date(u.metadata.lastSignInTime).getTime()
         setIsNew(Math.abs(created - lastSign) < 5000)
-        setShowAuth(false)
       }
       setUser(u || null)
     })
     return unsub
   }, [])
 
+  // Always show loader while auth resolves
   if (user === undefined) return <PageLoader />
+
+  // Logged in — show app (ignore showAuth entirely)
   if (user) {
     if (isNew) return <Onboarding user={user} onDone={() => setIsNew(false)} />
     return <AppShell user={user} />
   }
+
+  // Not logged in
   if (showAuth) return <AuthScreen onBack={() => setShowAuth(false)} />
   return <LandingPage onGetStarted={() => setShowAuth(true)} />
 }
