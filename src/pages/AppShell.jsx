@@ -9,12 +9,13 @@ import Income from './Income'
 import Expenses from './Expenses'
 import Bills from './Bills'
 import Savings from './Savings'
+import Accounts from './Accounts'
 import Settings from './Settings'
 import styles from './AppShell.module.css'
 
 export default function AppShell({ user }) {
   const [page, setPage] = useState('dashboard')
-  const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [] })
+  const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [], accounts: [] })
   const [profile, setProfile] = useState({})
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function AppShell({ user }) {
       listenCol(uid, 'expenses', rows => setData(d => ({ ...d, expenses: rows }))),
       listenCol(uid, 'bills', rows => setData(d => ({ ...d, bills: rows }))),
       listenCol(uid, 'goals', rows => setData(d => ({ ...d, goals: rows }))),
+      listenCol(uid, 'accounts', rows => setData(d => ({ ...d, accounts: rows }))),
       listenProfile(uid, p => setProfile(p)),
     ]
     return () => unsubs.forEach(u => u())
@@ -35,15 +37,24 @@ export default function AppShell({ user }) {
   const nav = [
     { id: 'dashboard', label: 'Dashboard', icon: '◈', section: 'Overview' },
     { id: 'calendar', label: 'Calendar', icon: '◻', section: null },
-    { id: 'income', label: 'Income', icon: '↑', section: 'Tracker' },
+    { id: 'accounts', label: 'Accounts', icon: '◉', section: 'Tracker' },
+    { id: 'income', label: 'Income', icon: '↑', section: null },
     { id: 'expenses', label: 'Expenses', icon: '↓', section: null },
     { id: 'bills', label: 'Bills', icon: '◷', section: null },
     { id: 'savings', label: 'Savings Goals', icon: '◎', section: null },
     { id: 'settings', label: 'Settings', icon: '⚙', section: 'Account' },
   ]
 
-  const pages = { dashboard: Dashboard, calendar: Calendar, income: Income, expenses: Expenses, bills: Bills, savings: Savings, settings: Settings }
+  const pages = { dashboard: Dashboard, calendar: Calendar, income: Income, expenses: Expenses, bills: Bills, savings: Savings, accounts: Accounts, settings: Settings }
   const PageComponent = pages[page]
+
+  const bottomNav = [
+    { id: 'dashboard', label: 'Home', icon: '◈' },
+    { id: 'calendar', label: 'Calendar', icon: '◻' },
+    { id: 'accounts', label: 'Accounts', icon: '◉' },
+    { id: 'expenses', label: 'Expenses', icon: '↓' },
+    { id: 'settings', label: 'Settings', icon: '⚙' },
+  ]
 
   return (
     <div className={styles.shell}>
@@ -71,6 +82,14 @@ export default function AppShell({ user }) {
       <main className={styles.main}>
         <PageComponent user={user} data={data} profile={profile} symbol={symbol} />
       </main>
+      <nav className={styles.bottomNav}>
+        {bottomNav.map(n => (
+          <button key={n.id} className={`${styles.bottomNavItem} ${page === n.id ? styles.active : ''}`} onClick={() => setPage(n.id)}>
+            <span className={styles.bottomNavIcon}>{n.icon}</span>
+            <span className={styles.bottomNavLabel}>{n.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   )
 }

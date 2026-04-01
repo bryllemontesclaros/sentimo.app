@@ -1,4 +1,6 @@
 .shell { display: flex; height: 100vh; }
+
+/* SIDEBAR — desktop */
 .sidebar { width: 220px; min-width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 1.5rem 0; }
 .logo { font-family: var(--font-display); font-size: 24px; color: var(--accent); padding: 0 1.25rem 1.5rem; letter-spacing: -0.5px; }
 .navSection { font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 0 1.25rem; margin-bottom: 6px; margin-top: 1rem; }
@@ -10,7 +12,46 @@
 .userInfo { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-glow); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--accent); }
 .userName { font-size: 13px; font-weight: 500; color: var(--text); }
-.userEmail { font-size: 11px; color: var(--text3); }
+.userEmail { font-size: 11px; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
 .btnLogout { background: none; border: none; color: var(--text3); font-size: 11px; cursor: pointer; padding: 0; }
 .btnLogout:hover { color: var(--red); }
 .main { flex: 1; overflow-y: auto; background: var(--bg); }
+
+/* BOTTOM NAV — mobile only */
+.bottomNav { display: none; }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .shell { flex-direction: column; }
+  .sidebar { display: none; }
+  .main { flex: 1; overflow-y: auto; padding-bottom: 70px; }
+  .bottomNav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    height: 60px;
+  }
+  .bottomNavItem {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--text3);
+    cursor: pointer;
+    padding: 6px 4px;
+    border: none;
+    background: none;
+    font-family: var(--font-body);
+    transition: color 0.15s;
+  }
+  .bottomNavItem.active { color: var(--accent); }
+  .bottomNavIcon { font-size: 18px; line-height: 1; }
+  .bottomNavLabel { font-size: 9px; font-weight: 500; }
+}
+
