@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { listenCol, listenProfile } from '../lib/firestore'
@@ -14,7 +14,7 @@ import Breakdown from './Breakdown'
 import Budget from './Budget'
 import Settings from './Settings'
 import History from './History'
-import QuickAdd from './QuickAdd'
+import { useState } from 'react'
 import { useTheme } from '../lib/theme.jsx'
 import NotificationBell from '../components/NotificationBell'
 import styles from './AppShell.module.css'
@@ -63,7 +63,6 @@ export default function AppShell({ user }) {
     { id: 'settings', label: 'Settings', icon: '⚙' },
   ]
 
-  const [showQuickAdd, setShowQuickAdd] = useState(false)
   const { theme, toggle: toggleTheme } = useTheme()
 
   return (
@@ -116,23 +115,6 @@ export default function AppShell({ user }) {
           <PageComponent user={user} data={data} profile={profile} symbol={symbol} />
         </main>
       </div>
-
-      {/* FLOATING QUICK ADD BUTTON */}
-      <button className={styles.fab} onClick={() => setShowQuickAdd(true)} title="Quick add expense">−</button>
-
-      {/* QUICK ADD MODAL */}
-      {showQuickAdd && (
-        <div className={styles.quickAddOverlay} onClick={e => { if (e.target === e.currentTarget) setShowQuickAdd(false) }}>
-          <div className={styles.quickAddPanel}>
-            <div className={styles.quickAddHeader}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--text)' }}>Quick Add</div>
-              <button onClick={() => setShowQuickAdd(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 20, cursor: 'pointer', minWidth: 36, minHeight: 36 }}>✕</button>
-            </div>
-            <QuickAdd user={user} symbol={symbol} onClose={() => setShowQuickAdd(false)} />
-          </div>
-        </div>
-      )}
-
       <nav className={styles.bottomNav}>
         {bottomNav.map(n => (
           <button key={n.id} className={`${styles.bottomNavItem} ${page === n.id ? styles.active : ''}`} onClick={() => setPage(n.id)}>

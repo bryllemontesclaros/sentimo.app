@@ -26,17 +26,6 @@
 .themeBtn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; transition: all 0.15s; }
 .themeBtn:hover { background: var(--surface2); color: var(--text); }
 
-/* FLOATING ACTION BUTTON */
-.fab { position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--red); color: #fff; border: none; font-size: 28px; font-weight: 700; cursor: pointer; z-index: 90; box-shadow: 0 4px 16px rgba(255,83,112,0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.15s, box-shadow 0.15s; }
-.fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(255,83,112,0.5); }
-@media (min-width: 769px) { .fab { bottom: 24px; right: 24px; } }
-
-/* QUICK ADD OVERLAY */
-.quickAddOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 300; display: flex; align-items: flex-end; justify-content: center; }
-@media (min-width: 640px) { .quickAddOverlay { align-items: center; } }
-.quickAddPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: 100%; max-width: 100%; max-height: 90vh; overflow-y: auto; }
-@media (min-width: 640px) { .quickAddPanel { border-radius: var(--radius-lg); max-width: 420px; } }
-.quickAddHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
 
 /* MOBILE */
 @media (max-width: 768px) {
