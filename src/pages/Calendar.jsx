@@ -148,22 +148,20 @@ export default function Calendar({ user, data, symbol }) {
             const d = i + 1
             const ds = dateStr(d)
             const { income, expenses } = getDayData(d)
-            const dayNet = income.reduce((a, t) => a + (t.amount || 0), 0) - expenses.reduce((a, t) => a + (t.amount || 0), 0)
-            const hasAny = income.length || expenses.length
+            const hasIncome = income.length > 0
+            const hasExpense = expenses.length > 0
+            const isSelected = selected === ds
+            const isToday = ds === todayStr
             return (
               <div key={d}
-                className={`${calStyles.cell} ${ds === todayStr ? calStyles.today : ''} ${selected === ds ? calStyles.selectedCell : ''}`}
-                onClick={() => setSelected(ds)}
-                onDoubleClick={() => openAdd(ds)}
+                className={`${calStyles.cell} ${isToday ? calStyles.today : ''} ${isSelected ? calStyles.selectedCell : ''} ${(hasIncome || hasExpense) ? calStyles.hasData : ''}`}
+                onClick={() => setSelected(ds === selected ? null : ds)}
               >
                 <div className={calStyles.dateNum}>{d}</div>
-                <div className={calStyles.dots}>
-                  {income.length > 0 && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
-                  {expenses.length > 0 && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
-                </div>
-                {hasAny && (
-                  <div className={calStyles.amount} style={{ color: dayNet >= 0 ? 'var(--accent)' : 'var(--red)' }}>
-                    {dayNet >= 0 ? '+' : ''}{fmt(dayNet, s)}
+                {(hasIncome || hasExpense) && (
+                  <div className={calStyles.dots}>
+                    {hasIncome && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
+                    {hasExpense && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
                   </div>
                 )}
               </div>
@@ -200,16 +198,21 @@ export default function Calendar({ user, data, symbol }) {
         </div>
       </div>
 
-      {/* DAY PANEL */}
+      {/* DAY PANEL — bottom sheet on mobile, card on desktop */}
       {selected && (
-        <div className={styles.card}>
-          <div className={styles.cardTitle}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{selected}</span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button className={calStyles.addBtnIncome} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'income')}>+ Income</button>
-              <button className={calStyles.addBtnExpense} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'expense')}>− Expense</button>
+        <>
+          {/* Mobile overlay backdrop */}
+          <div className={calStyles.dayPanelOverlay} onClick={() => setSelected(null)} />
+          <div className={calStyles.dayPanel}>
+            <div className={calStyles.dayPanelHandle} />
+            <div className={calStyles.dayPanelHeader}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{selected}</span>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <button className={calStyles.addBtnIncome} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'income')}>+ Income</button>
+                <button className={calStyles.addBtnExpense} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'expense')}>− Expense</button>
+                <button onClick={() => setSelected(null)} className={calStyles.dayPanelClose}>✕</button>
+              </div>
             </div>
-          </div>
 
           {/* INCOME */}
           {selectedIncome.length > 0 && (
@@ -279,6 +282,7 @@ export default function Calendar({ user, data, symbol }) {
             </div>
           )}
         </div>
+        </>
       )}
 
       {/* ADD / EDIT MODAL */}

@@ -79,7 +79,7 @@ export default function LandingPage() {
             <div className={styles.stepNum}>1</div>
             <div className={styles.stepText}>
               <div className={styles.stepTitle}>Sign up in seconds</div>
-              <div className={styles.stepDesc}>Use your Google account or email. No forms, no hassle.</div>
+              <div className={styles.stepDesc}>Sign up with your email in seconds. No credit card needed.</div>
             </div>
           </div>
           <div className={styles.stepArrow}>→</div>
