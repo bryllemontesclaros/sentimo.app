@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 import { auth } from '../lib/firebase'
-import { fsDel, fsSetProfile } from '../lib/firestore'
-import { fmt, CURRENCIES, PAY_SCHEDULES } from '../lib/utils'
+import { fsDel, fsSetProfile, fsAdd, fsUpdate } from '../lib/firestore'
+import { fmt, CURRENCIES, PAY_SCHEDULES, confirmDelete } from '../lib/utils'
 import { generateMonthlyReport } from '../lib/report'
 import styles from './Page.module.css'
 import settStyles from './Settings.module.css'
@@ -21,6 +21,8 @@ export default function Settings({ user, data, profile, symbol }) {
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
   const [pwMsg, setPwMsg] = useState({ text: '', ok: false })
   const [pwLoading, setPwLoading] = useState(false)
+  const [goalForm, setGoalForm] = useState({ name: '', target: '', current: '', date: '' })
+  const [contribs, setContribs] = useState({})
 
   async function handleChangePassword() {
     setPwMsg({ text: '', ok: false })
@@ -40,6 +42,30 @@ export default function Settings({ user, data, profile, symbol }) {
         : 'Failed to change password. Try again.'
       setPwMsg({ text: msg, ok: false })
     } finally { setPwLoading(false) }
+  }
+
+  async function handleAddGoal() {
+    if (!goalForm.name || !goalForm.target) return alert('Please fill goal name and target amount.')
+    await fsAdd(user.uid, 'goals', {
+      name: goalForm.name,
+      target: parseFloat(goalForm.target),
+      current: parseFloat(goalForm.current) || 0,
+      date: goalForm.date,
+    })
+    setGoalForm({ name: '', target: '', current: '', date: '' })
+  }
+
+  async function handleGoalContrib(g) {
+    const val = parseFloat(contribs[g._id] || 0)
+    if (!val) return
+    const newVal = Math.min(g.target, (g.current || 0) + val)
+    await fsUpdate(user.uid, 'goals', g._id, { current: newVal })
+    setContribs(c => ({ ...c, [g._id]: '' }))
+  }
+
+  async function handleDelGoal(id) {
+    if (!confirmDelete('this goal')) return
+    await fsDel(user.uid, 'goals', id)
   }
 
   useEffect(() => {
@@ -222,13 +248,12 @@ export default function Settings({ user, data, profile, symbol }) {
       <div className={styles.card}>
         <div className={styles.cardTitle}>
           Live Exchange Rates
-          <button className={settStyles.btnExport} onClick={fetchRates} disabled={ratesLoading} style={{ fontSize: 12, padding: '5px 12px' }}>
-            {ratesLoading ? 'Loading...' : '↻ Refresh'}
-          </button>
         </div>
-        {!rates ? (
+        {ratesLoading ? (
+          <div style={{ fontSize: 13, color: 'var(--text3)' }}>Loading rates...</div>
+        ) : !rates ? (
           <div style={{ fontSize: 13, color: 'var(--text3)' }}>
-            Click Refresh to load current PHP exchange rates.
+            Could not load rates. Check your connection.
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
@@ -254,6 +279,45 @@ export default function Settings({ user, data, profile, symbol }) {
           </div>
         )}
         <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8 }}>Source: exchangerate-api.com · Rates are indicative</div>
+      </div>
+
+      {/* SAVINGS GOALS */}
+      <div className={styles.card}>
+        <div className={styles.cardTitle}>Savings Goals</div>
+        <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 8 }}>
+          <div className={styles.formGroup}><label>Goal name</label><input placeholder="e.g. Emergency fund" value={goalForm.name} onChange={e => setGoalForm(f => ({ ...f, name: e.target.value }))} /></div>
+          <div className={styles.formGroup}><label>Target ({s})</label><input type="number" min="0" placeholder="0.00" value={goalForm.target} onChange={e => setGoalForm(f => ({ ...f, target: e.target.value }))} /></div>
+        </div>
+        <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
+          <div className={styles.formGroup}><label>Already saved ({s})</label><input type="number" min="0" placeholder="0.00" value={goalForm.current} onChange={e => setGoalForm(f => ({ ...f, current: e.target.value }))} /></div>
+          <div className={styles.formGroup}><label>Target date</label><input type="date" value={goalForm.date} onChange={e => setGoalForm(f => ({ ...f, date: e.target.value }))} /></div>
+        </div>
+        <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px', marginBottom: data.goals.length ? '1.25rem' : 0 }} onClick={handleAddGoal}>Add goal</button>
+
+        {data.goals.map(g => {
+          const pct = Math.min(100, Math.round(((g.current || 0) / (g.target || 1)) * 100))
+          return (
+            <div key={g._id} style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{g.name}</span>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)' }}>{fmt(g.current || 0, s)}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text3)' }}>/ {fmt(g.target, s)}</span>
+                  <button onClick={() => handleDelGoal(g._id)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 13, padding: '2px 4px' }}>✕</button>
+                </div>
+              </div>
+              <div style={{ height: 7, background: 'var(--surface3)', borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)', borderRadius: 4, transition: 'width 0.4s' }} />
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input type="number" min="0" placeholder={`Add amount (${s})`} value={contribs[g._id] || ''} onChange={e => setContribs(c => ({ ...c, [g._id]: e.target.value }))}
+                  style={{ flex: 1, padding: '7px 10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 13, fontFamily: 'var(--font-body)', outline: 'none' }} />
+                <button onClick={() => handleGoalContrib(g)} style={{ padding: '7px 14px', background: 'var(--accent-glow)', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-body)', whiteSpace: 'nowrap' }}>+ Add</button>
+              </div>
+            </div>
+          )
+        })}
+        {!data.goals.length && <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 8 }}>No savings goals yet. Add one above.</div>}
       </div>
 
       {/* CHANGE PASSWORD */}

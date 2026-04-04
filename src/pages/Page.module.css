@@ -70,3 +70,7 @@ tbody tr:hover td { background: var(--surface2); color: var(--text); }
   .statVal { font-size: 14px; }
   .statLabel { font-size: 10px; }
 }
+
+@media (max-width: 768px) {
+  .page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+}

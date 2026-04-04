@@ -22,6 +22,7 @@
 .main { flex: 1; overflow-y: auto; background: var(--bg); -webkit-overflow-scrolling: touch; }
 .mainWrap { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 .topBar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; padding: 0 1.5rem; flex-shrink: 0; }
+.topBarLogo { display: none; font-family: var(--font-display); font-size: 20px; color: var(--accent); letter-spacing: -0.5px; margin-right: auto; }
 .topBarRight { display: flex; align-items: center; gap: 4px; }
 .themeBtn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; transition: all 0.15s; }
 .themeBtn:hover { background: var(--surface2); color: var(--text); }
@@ -33,6 +34,7 @@
   .mainWrap { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .main { flex: 1; overflow-y: auto; padding-bottom: 70px; -webkit-overflow-scrolling: touch; }
   .topBar { padding: 0 1rem; flex-shrink: 0; }
+  .topBarLogo { display: block; }
   .bottomNav {
     display: flex;
     position: fixed;
@@ -61,6 +63,6 @@
     -webkit-tap-highlight-color: transparent;
   }
   .bottomNavItem.active { color: var(--accent); }
-  .bottomNavIcon { font-size: 18px; line-height: 1; }
+  .bottomNavIcon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
   .bottomNavLabel { font-size: 9px; font-weight: 500; }
 }
