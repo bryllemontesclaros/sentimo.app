@@ -1,0 +1,42 @@
+/* GREETING */
+.greeting { margin-bottom: 1.5rem; }
+.greetingText { display: flex; flex-direction: column; gap: 3px; }
+.greetingHi { font-family: var(--font-display); font-size: 24px; color: var(--text); letter-spacing: -0.3px; }
+.greetingDate { font-size: 13px; color: var(--text3); }
+
+/* HERO NET WORTH */
+.heroCard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem 1.5rem; margin-bottom: 1rem; position: relative; overflow: hidden; }
+.heroCard::before { content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; background: var(--accent); opacity: 0.05; border-radius: 50%; }
+.heroLabel { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+.heroVal { font-family: var(--font-display); font-size: 40px; color: var(--accent); letter-spacing: -1.5px; margin-bottom: 4px; line-height: 1; }
+.heroSub { font-size: 12px; color: var(--text3); }
+
+/* STATS ROW */
+.statsRow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+.statBox { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+.statBoxLabel { font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px; }
+.statBoxVal { font-family: var(--font-mono); font-size: 14px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.2; }
+.statBoxChange { font-size: 10px; margin-top: 4px; }
+
+/* TWO COL */
+.twoCol { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+
+/* MINI CARDS */
+.miniCard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+.miniLabel { font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px; }
+.miniVal { font-family: var(--font-mono); font-size: 18px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 3px; }
+.miniSub { font-size: 11px; color: var(--text3); }
+.miniCat { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* BUDGET DOTS */
+.budgetDots { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
+.budgetDot { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; color: #0a0a0f; }
+
+/* MOBILE */
+@media (max-width: 480px) {
+  .heroVal { font-size: 32px; }
+  .statsRow { gap: 6px; }
+  .statBoxVal { font-size: 12px; }
+  .miniVal { font-size: 15px; }
+  .greetingHi { font-size: 20px; }
+}

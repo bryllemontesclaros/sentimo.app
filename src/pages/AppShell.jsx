@@ -4,6 +4,7 @@ import { auth } from '../lib/firebase'
 import { listenCol, listenProfile } from '../lib/firestore'
 import { getInitials, getCurrencySymbol } from '../lib/utils'
 import Calendar from './Calendar'
+import Dashboard from './Dashboard'
 import Savings from './Savings'
 import Accounts from './Accounts'
 import Breakdown from './Breakdown'
@@ -15,6 +16,11 @@ import NotificationBell from '../components/NotificationBell'
 import styles from './AppShell.module.css'
 
 const NAV_ICONS = {
+  home: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  ),
   calendar: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
@@ -48,7 +54,7 @@ const NAV_ICONS = {
 }
 
 export default function AppShell({ user }) {
-  const [page, setPage] = useState('calendar')
+  const [page, setPage] = useState('dashboard')
   const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [], accounts: [], budgets: [] })
   const [profile, setProfile] = useState({})
 
@@ -70,6 +76,7 @@ export default function AppShell({ user }) {
   const symbol = getCurrencySymbol(profile.currency || 'PHP')
 
   const nav = [
+    { id: 'dashboard', label: 'Dashboard', icon: '◈', section: 'Overview' },
     { id: 'calendar', label: 'Calendar', icon: '◻', section: 'Track' },
     { id: 'history', label: 'History', icon: '☰', section: null },
     { id: 'breakdown', label: 'Breakdown', icon: '◑', section: 'Analyse' },
@@ -79,13 +86,13 @@ export default function AppShell({ user }) {
     { id: 'settings', label: 'Settings', icon: '⚙', section: 'Account' },
   ]
 
-  const pages = { calendar: Calendar, history: History, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
-  const PageComponent = pages[page] || Calendar
+  const pages = { dashboard: Dashboard, calendar: Calendar, history: History, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
+  const PageComponent = pages[page] || Dashboard
 
   const bottomNav = [
+    { id: 'dashboard', label: 'Home', iconKey: 'home' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar' },
     { id: 'breakdown', label: 'Charts', iconKey: 'breakdown' },
-    { id: 'budget', label: 'Budget', iconKey: 'budget' },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
     { id: 'settings', label: 'Settings', iconKey: 'settings' },
   ]
