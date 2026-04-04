@@ -49,11 +49,11 @@
 .forecastBal { display: none; }
 
 /* SUMMARY STRIP */
-.summaryStrip { display: flex; align-items: center; justify-content: space-around; margin-top: 1rem; padding: 12px 0 4px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
-.stripItem { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.stripLabel { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-.stripVal { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
-.stripDivider { width: 1px; height: 28px; background: var(--border); }
+.summaryStrip { display: flex; align-items: center; justify-content: space-around; margin-top: 1rem; padding: 12px 0 4px; border-top: 1px solid var(--border); gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.stripItem { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
+.stripLabel { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; white-space: nowrap; }
+.stripVal { font-family: var(--font-mono); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.stripDivider { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
 
 /* FORECAST LEGEND */
 .forecastLegend { display: flex; align-items: center; gap: 12px; padding: 8px 0 2px; flex-wrap: wrap; }

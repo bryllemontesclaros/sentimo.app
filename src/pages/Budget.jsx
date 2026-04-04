@@ -138,7 +138,7 @@ export default function Budget({ user, data, symbol }) {
             <input type="number" min="0" placeholder="e.g. 5000" value={form.limit} onChange={e => setForm(f => ({ ...f, limit: e.target.value }))} />
           </div>
           <div className={styles.formGroup} style={{ justifyContent: 'flex-end' }}>
-            <button className={styles.btnAdd} onClick={handleAddBudget}>Set budget</button>
+            <button className={styles.btnAdd} style={{ width: '100%' }} onClick={handleAddBudget}>Set budget</button>
           </div>
         </div>
       </div>

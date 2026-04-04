@@ -78,14 +78,15 @@ export default function Settings({ user, data, profile, symbol }) {
     }
   }, [profile])
 
-  useEffect(() => { fetchRates() }, [])
+  useEffect(() => { fetchRates() }, [profileForm.currency])
 
   async function fetchRates() {
     setRatesLoading(true)
     try {
-      const res = await fetch('https://api.exchangerate-api.com/v4/latest/PHP')
+      const baseCurrency = profileForm.currency || 'PHP'
+      const res = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`)
       const json = await res.json()
-      setRates(json.rates)
+      setRates({ data: json.rates, base: baseCurrency })
     } catch {
       setRates(null)
     } finally { setRatesLoading(false) }
@@ -257,22 +258,21 @@ export default function Settings({ user, data, profile, symbol }) {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
-            {/* PHP reference card — always on top */}
+            {/* Base currency card */}
             <div style={{ background: 'var(--accent-glow)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', gridColumn: '1 / -1' }}>
-              <div style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4, fontWeight: 600 }}>Philippine Peso — Base currency</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, color: 'var(--accent)', fontWeight: 700 }}>₱ PHP</div>
+              <div style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4, fontWeight: 600 }}>Your currency — Base</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, color: 'var(--accent)', fontWeight: 700 }}>{s} {rates.base}</div>
             </div>
-            {['USD','EUR','GBP','JPY','SGD','AUD','CAD','HKD','KRW','CNY'].map(code => {
-              if (!rates[code]) return null
-              // How many PHP = 1 unit of foreign currency
-              const phpPer1Foreign = (1 / rates[code]).toFixed(2)
+            {['USD','EUR','GBP','JPY','SGD','AUD','CAD','HKD','KRW','CNY','PHP'].filter(code => code !== rates.base).map(code => {
+              if (!rates.data[code]) return null
+              const unitsPerForeign = (1 / rates.data[code]).toFixed(2)
               return (
                 <div key={code} style={{ background: 'var(--surface2)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
                   <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>1 {code} =</div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--text)', fontWeight: 700 }}>
-                    ₱{phpPer1Foreign}
+                    {s}{unitsPerForeign}
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>PHP</div>
+                  <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>{rates.base}</div>
                 </div>
               )
             })}
@@ -355,7 +355,7 @@ export default function Settings({ user, data, profile, symbol }) {
             const { auth } = await import('../lib/firebase')
             await signOut(auth)
           }}
-          style={{ width: '100%', padding: '12px', background: 'none', border: '1px solid var(--border)', color: 'var(--text2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500 }}
+          style={{ width: '100%', padding: '13px', background: 'var(--red-dim)', border: '1px solid var(--red)', color: 'var(--red)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600 }}
         >
           Log out
         </button>

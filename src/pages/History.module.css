@@ -1,9 +1,9 @@
 /* SEARCH ROW */
-.searchRow { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
-.searchInput { flex: 1; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 14px; outline: none; font-family: var(--font-body); min-height: 44px; }
+.searchRow { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; position: relative; }
+.searchInput { flex: 1; padding: 10px 36px 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 14px; outline: none; font-family: var(--font-body); min-height: 44px; }
 .searchInput:focus { border-color: var(--accent); }
-.clearSearch { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 4px 8px; position: absolute; right: 60px; }
-.filterBtn { padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font-body); white-space: nowrap; min-height: 44px; }
+.clearSearch { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 4px 8px; position: absolute; right: 56px; top: 50%; transform: translateY(-50%); z-index: 1; }
+.filterBtn { padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font-body); white-space: nowrap; min-height: 44px; flex-shrink: 0; }
 .filterBtnActive { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
 
 /* FILTER PANEL */
@@ -15,6 +15,10 @@
 .filterGroup select:focus, .filterGroup input:focus { border-color: var(--accent); }
 .clearFiltersBtn { background: none; border: 1px solid var(--red); color: var(--red); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 12px; cursor: pointer; font-family: var(--font-body); }
 .clearFiltersBtn:hover { background: var(--red-dim); }
+
+@media (max-width: 360px) {
+  .filterGrid { grid-template-columns: 1fr; }
+}
 
 /* TOTALS BAR */
 .totalsBar { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 1rem; margin-bottom: 1rem; }

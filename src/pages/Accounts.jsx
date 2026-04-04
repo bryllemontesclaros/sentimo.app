@@ -107,18 +107,6 @@ export default function Accounts({ user, data, symbol }) {
                 </div>
 
                 {acc.notes && <div className={accStyles.accountNotes}>{acc.notes}</div>}
-
-                {/* QUICK BALANCE UPDATE */}
-                <div className={accStyles.quickUpdate}>
-                  <input
-                    type="number"
-                    placeholder="Update balance"
-                    value={editBalance[acc._id] || ''}
-                    onChange={e => setEditBalance(b => ({ ...b, [acc._id]: e.target.value }))}
-                    className={accStyles.quickInput}
-                  />
-                  <button className={accStyles.quickBtn} onClick={() => handleBalanceUpdate(acc)}>Update</button>
-                </div>
               </div>
             ))}
           </div>

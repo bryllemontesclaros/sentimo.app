@@ -44,12 +44,14 @@ function PieChart({ data, size = 160 }) {
   })
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {slices.map((sl, i) => (
-        <path key={i} d={sl.path} fill={sl.color} opacity={0.9} />
-      ))}
-      <circle cx={cx} cy={cy} r={r * 0.55} fill="var(--surface)" />
-    </svg>
+    <div style={{ width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block' }}>
+        {slices.map((sl, i) => (
+          <path key={i} d={sl.path} fill={sl.color} opacity={0.9} />
+        ))}
+        <circle cx={cx} cy={cy} r={r * 0.55} fill="var(--surface)" />
+      </svg>
+    </div>
   )
 }
 
