@@ -145,7 +145,7 @@ export default function Calendar({ user, data, symbol }) {
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Calendar</div>
-        <div className={styles.sub}>Tap a day to view · Double-tap to add</div>
+        <div className={styles.sub}>Tap a day to view transactions</div>
       </div>
 
       <div className={styles.card}>

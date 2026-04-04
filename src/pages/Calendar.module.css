@@ -1,46 +1,52 @@
 /* CALENDAR HEADER */
 .calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
-.nav { display: flex; align-items: center; gap: 1rem; }
-.monthLabel { font-family: var(--font-display); font-size: 20px; color: var(--text); width: 200px; text-align: center; }
-.navBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 6px 14px; cursor: pointer; font-size: 15px; min-width: 44px; min-height: 44px; }
+.nav { display: flex; align-items: center; gap: 0.5rem; }
+.monthLabel { font-family: var(--font-display); font-size: 18px; color: var(--text); width: 180px; text-align: center; }
+.navBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 6px 14px; cursor: pointer; font-size: 15px; min-width: 40px; min-height: 40px; flex-shrink: 0; }
 .navBtn:hover { border-color: var(--border2); color: var(--text); }
 
 /* ADD BUTTONS */
-.addBtns { display: flex; gap: 6px; flex-wrap: wrap; }
+.addBtns { display: flex; gap: 6px; }
 .addBtnIncome { padding: 8px 14px; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s; }
 .addBtnIncome:hover { opacity: 0.8; }
 .addBtnExpense { padding: 8px 14px; background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s; }
 .addBtnExpense:hover { opacity: 0.8; }
-.addBtnBill { padding: 8px 14px; background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s; }
-.addBtnBill:hover { opacity: 0.8; }
-
-@media (max-width: 480px) {
-  .calHeader { flex-direction: column; align-items: flex-start; }
-  .addBtns { width: 100%; }
-  .addBtnIncome, .addBtnExpense, .addBtnBill { flex: 1; text-align: center; font-size: 12px; padding: 10px 8px; }
-  .monthLabel { font-size: 17px; }
-  .cell { min-height: 56px; padding: 3px; }
-  .dateNum { font-size: 11px; }
-  .amount { font-size: 8px; }
-}
 
 /* DAY NAMES + GRID */
-.dayNames { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 2px; }
-.dayName { text-align: center; font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; padding: 4px; }
-.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-.cell { min-height: 76px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 5px; cursor: pointer; transition: all 0.15s; }
+.dayNames { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-bottom: 2px; }
+.dayName { text-align: center; font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; padding: 4px 0; }
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+
+/* CELL — clean, no text overflow */
+.cell {
+  min-height: 52px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+}
 .cell:hover { border-color: var(--border2); background: var(--surface3); }
 .today { border-color: var(--accent) !important; background: var(--accent-glow) !important; }
 .otherMonth { opacity: 0.2; pointer-events: none; }
 .selectedCell { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.dateNum { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.hasData { background: var(--surface3); }
+
+.dateNum { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.2; }
 .today .dateNum { color: var(--accent); }
-.dots { display: flex; flex-wrap: wrap; gap: 2px; }
-.dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* DOTS ONLY — no amount text in cells */
+.dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; }
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .dotIncome { background: var(--accent); }
 .dotExpense { background: var(--red); }
-.dotBill { background: var(--amber); }
-.amount { font-size: 9px; font-family: var(--font-mono); margin-top: 2px; font-weight: 600; }
+
+/* FORECAST color tint only — no text in cells */
+.forecastBal { display: none; }
 
 /* SUMMARY STRIP */
 .summaryStrip { display: flex; align-items: center; justify-content: space-around; margin-top: 1rem; padding: 12px 0 4px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
@@ -48,7 +54,22 @@
 .stripLabel { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
 .stripVal { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
 .stripDivider { width: 1px; height: 28px; background: var(--border); }
-@media (max-width: 480px) { .stripDivider { display: none; } .summaryStrip { justify-content: flex-start; gap: 12px; } }
+
+/* FORECAST LEGEND */
+.forecastLegend { display: flex; align-items: center; gap: 12px; padding: 8px 0 2px; flex-wrap: wrap; }
+.legendItem { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text3); }
+.legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* IMPACT PREVIEW in modal */
+.impactPreview { border: 1px solid; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; font-weight: 500; margin-bottom: 1rem; }
+
+/* DAY PANEL — inline on desktop */
+.dayPanelOverlay { display: none; }
+.dayPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; }
+.dayPanelHandle { display: none; }
+.dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; gap: 8px; }
+.dayPanelClose { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dayPanelClose:hover { color: var(--red); }
 
 /* DAY PANEL SECTIONS */
 .daySection { margin-bottom: 12px; }
@@ -80,70 +101,36 @@
 .modalHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
 .modalTitle { font-family: var(--font-display); font-size: 20px; color: var(--text); }
 .modalClose { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; min-width: 36px; min-height: 36px; }
-
-/* TYPE TOGGLE — 2 buttons */
 .typeToggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 1.25rem; }
 .typeBtn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 8px; border: 2px solid var(--border); border-radius: var(--radius); background: var(--surface2); color: var(--text3); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; min-height: 52px; }
 .typeBtn:hover { border-color: var(--border2); color: var(--text); }
 .typeBtnIncome { border-color: var(--accent) !important; background: var(--accent-glow) !important; color: var(--accent) !important; }
 .typeBtnExpense { border-color: var(--red) !important; background: var(--red-dim) !important; color: var(--red) !important; }
-.typeBtnBill { border-color: var(--amber) !important; background: var(--amber-dim) !important; color: var(--amber) !important; }
 .typeBtnSign { font-size: 18px; font-weight: 700; line-height: 1; }
-
-/* AMOUNT FIELD */
 .amountField { display: flex; align-items: center; gap: 4px; margin-bottom: 1.25rem; padding: 12px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); }
 .amountSign { font-size: 26px; font-weight: 700; font-family: var(--font-mono); line-height: 1; min-width: 20px; }
 .amountSymbol { font-size: 20px; font-weight: 600; font-family: var(--font-mono); color: var(--text2); }
 .amountInput { flex: 1; background: none; border: none; outline: none; font-size: 26px; font-weight: 600; font-family: var(--font-mono); min-width: 0; }
-
-/* MODAL FIELDS */
 .modalFields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-@media (max-width: 480px) { .modalFields { grid-template-columns: 1fr; } }
-
-/* RECURRENCE CHIPS */
 .recurGrid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .recurChip { padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 30px; }
 .recurChipActive { border-color: var(--purple); background: var(--purple-dim); color: var(--purple); }
-
-/* MODAL ACTIONS */
 .modalActions { display: flex; gap: 8px; margin-top: 1.25rem; }
 .btnCancel { flex: 1; padding: 12px; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; min-height: 48px; }
 .btnSave { flex: 2; padding: 12px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; font-weight: 600; min-height: 48px; }
 
-/* DAY PANEL — bottom sheet on mobile */
-.dayPanelOverlay { display: none; }
-.dayPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; }
-.dayPanelHandle { display: none; }
-.dayPanelHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.dayPanelClose { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
-.dayPanelClose:hover { color: var(--red); }
-
-/* HAS DATA indicator */
-.hasData { background: var(--surface3); }
-
-/* FORECAST BALANCE — shown on future days */
-.forecastBal { font-size: 8px; font-family: var(--font-mono); font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* FORECAST LEGEND */
-.forecastLegend { display: flex; align-items: center; gap: 12px; padding: 8px 0 2px; flex-wrap: wrap; }
-.legendItem { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text3); }
-.legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-/* IMPACT PREVIEW in modal */
-.impactPreview { border: 1px solid; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; font-weight: 500; margin-bottom: 1rem; }
-
-/* BIGGER DOTS */
-.dot { width: 7px; height: 7px; border-radius: 50%; }
-
+/* MOBILE */
 @media (max-width: 768px) {
-  /* Bottom sheet */
+  .calHeader { flex-direction: column; align-items: stretch; }
+  .nav { justify-content: space-between; }
+  .addBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .addBtnIncome, .addBtnExpense { text-align: center; font-size: 13px; }
+  .stripDivider { display: none; }
+  .summaryStrip { justify-content: flex-start; gap: 12px; }
+  .modalFields { grid-template-columns: 1fr; }
+
+  /* Bottom sheet day panel */
   .dayPanelOverlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; }
   .dayPanel { position: fixed; bottom: 60px; left: 0; right: 0; z-index: 200; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; overflow-y: auto; margin-top: 0; -webkit-overflow-scrolling: touch; }
   .dayPanelHandle { display: block; width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 1rem; }
-
-  /* Taller cells on mobile for easier tapping */
-  .cell { min-height: 64px; }
-
-  /* Bigger date number */
-  .dateNum { font-size: 13px; font-weight: 700; }
 }

@@ -283,6 +283,20 @@ export default function Settings({ user, data, profile, symbol }) {
         </button>
       </div>
 
+      {/* LOG OUT */}
+      <div className={styles.card}>
+        <button
+          onClick={async () => {
+            const { signOut } = await import('firebase/auth')
+            const { auth } = await import('../lib/firebase')
+            await signOut(auth)
+          }}
+          style={{ width: '100%', padding: '12px', background: 'none', border: '1px solid var(--border)', color: 'var(--text2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500 }}
+        >
+          Log out
+        </button>
+      </div>
+
       {/* ABOUT */}
       <div className={styles.card}>
         <div className={styles.cardTitle}>About</div>
