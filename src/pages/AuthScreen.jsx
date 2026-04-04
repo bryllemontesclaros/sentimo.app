@@ -73,7 +73,6 @@ export default function AuthScreen() {
       <div className={styles.card}>
         <div className={styles.logo}>Sentimo</div>
         <div className={styles.tagline}>Bawat piso, sinusubaybayan.</div>
-        <button className={styles.backLink} onClick={() => navigate('/')} style={{ marginBottom: '1rem' }}>← Back</button>
 
         {!showForgot ? (
           <>

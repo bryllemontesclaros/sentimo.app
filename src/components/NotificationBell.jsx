@@ -9,19 +9,27 @@ const TYPE_COLORS = {
   info: { bg: 'var(--blue-dim)', border: 'rgba(110,181,255,0.3)', icon: 'var(--blue)', dot: 'var(--blue)' },
 }
 
+// Safe wrappers — mobile Safari throws on undefined Notification or blocked localStorage
+const safeNotificationPermission = () => {
+  try { return typeof Notification !== 'undefined' ? Notification.permission : 'denied' } catch { return 'denied' }
+}
+const safeLocalStorageGet = (key, fallback) => {
+  try { return JSON.parse(localStorage.getItem(key) || fallback) } catch { return JSON.parse(fallback) }
+}
+const safeLocalStorageSet = (key, value) => {
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch {}
+}
+
 export default function NotificationBell({ data, profile }) {
   const [open, setOpen] = useState(false)
-  const [dismissed, setDismissed] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('sentimo_dismissed') || '[]') } catch { return [] }
-  })
-  const [pushEnabled, setPushEnabled] = useState(Notification?.permission === 'granted')
+  const [dismissed, setDismissed] = useState(() => safeLocalStorageGet('sentimo_dismissed', '[]'))
+  const [pushEnabled, setPushEnabled] = useState(() => safeNotificationPermission() === 'granted')
   const ref = useRef(null)
 
   const allAlerts = getAlerts(data, profile)
   const alerts = allAlerts.filter(a => !dismissed.includes(a.id))
   const count = alerts.length
 
-  // Close on outside click
   useEffect(() => {
     function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
     document.addEventListener('mousedown', handler)
@@ -31,14 +39,14 @@ export default function NotificationBell({ data, profile }) {
   function dismiss(id) {
     const next = [...dismissed, id]
     setDismissed(next)
-    localStorage.setItem('sentimo_dismissed', JSON.stringify(next))
+    safeLocalStorageSet('sentimo_dismissed', next)
   }
 
   function dismissAll() {
     const next = alerts.map(a => a.id)
     setDismissed(d => {
       const updated = [...d, ...next]
-      localStorage.setItem('sentimo_dismissed', JSON.stringify(updated))
+      safeLocalStorageSet('sentimo_dismissed', updated)
       return updated
     })
   }
@@ -47,6 +55,8 @@ export default function NotificationBell({ data, profile }) {
     const granted = await requestPushPermission()
     setPushEnabled(granted)
   }
+
+  const showPushBanner = !pushEnabled && typeof Notification !== 'undefined'
 
   return (
     <div className={nStyles.wrap} ref={ref}>
@@ -65,7 +75,7 @@ export default function NotificationBell({ data, profile }) {
             {count > 0 && <button className={nStyles.clearAll} onClick={dismissAll}>Clear all</button>}
           </div>
 
-          {!pushEnabled && (
+          {showPushBanner && (
             <div className={nStyles.pushBanner}>
               <span>Enable browser notifications?</span>
               <button className={nStyles.pushBtn} onClick={enablePush}>Enable</button>

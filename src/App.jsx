@@ -3,13 +3,11 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from './lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
-import LandingPage from './pages/LandingPage'
 import AuthScreen from './pages/AuthScreen'
 import AppShell from './pages/AppShell'
 import Onboarding from './pages/Onboarding'
 import { PageLoader } from './components/Loading'
 
-// Shared auth hook used by both routes
 function useAuth() {
   const [state, setState] = useState({ ready: false, user: null, isNew: false })
 
@@ -37,14 +35,12 @@ function AuthRoute() {
   const { ready, user, isNew } = useAuth()
 
   useEffect(() => {
-    if (ready && user && !isNew) {
-      navigate('/app', { replace: true })
-    }
+    if (ready && user && !isNew) navigate('/app', { replace: true })
   }, [ready, user, isNew])
 
   if (!ready) return <PageLoader />
   if (user && isNew) return <Onboarding user={user} onDone={() => navigate('/app', { replace: true })} />
-  if (user) return null // navigating to /app
+  if (user) return null
   return <AuthScreen />
 }
 
@@ -53,13 +49,11 @@ function ProtectedRoute() {
   const { ready, user, isNew } = useAuth()
 
   useEffect(() => {
-    if (ready && !user) {
-      navigate('/login', { replace: true })
-    }
+    if (ready && !user) navigate('/login', { replace: true })
   }, [ready, user])
 
   if (!ready) return <PageLoader />
-  if (!user) return null // navigating to /login
+  if (!user) return null
   if (isNew) return <Onboarding user={user} onDone={() => navigate('/app', { replace: true })} />
   return <AppShell user={user} />
 }
@@ -67,10 +61,10 @@ function ProtectedRoute() {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<AuthRoute />} />
       <Route path="/app" element={<ProtectedRoute />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )
 }

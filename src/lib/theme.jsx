@@ -2,12 +2,15 @@ import { createContext, useContext, useState, useEffect } from 'react'
 
 const ThemeContext = createContext()
 
+const safeGet = (key, fallback) => { try { return localStorage.getItem(key) || fallback } catch { return fallback } }
+const safeSet = (key, val) => { try { localStorage.setItem(key, val) } catch {} }
+
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => localStorage.getItem('sentimo_theme') || 'dark')
+  const [theme, setTheme] = useState(() => safeGet('sentimo_theme', 'dark'))
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('sentimo_theme', theme)
+    safeSet('sentimo_theme', theme)
   }, [theme])
 
   function toggle() { setTheme(t => t === 'dark' ? 'light' : 'dark') }

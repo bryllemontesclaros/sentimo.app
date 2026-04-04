@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
+import { auth } from '../lib/firebase'
 import { fsDel, fsSetProfile } from '../lib/firestore'
 import { fmt, CURRENCIES, PAY_SCHEDULES } from '../lib/utils'
 import { generateMonthlyReport } from '../lib/report'
@@ -16,6 +18,29 @@ export default function Settings({ user, data, profile, symbol }) {
   const [exportDone, setExportDone] = useState(false)
   const [rates, setRates] = useState(null)
   const [ratesLoading, setRatesLoading] = useState(false)
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
+  const [pwMsg, setPwMsg] = useState({ text: '', ok: false })
+  const [pwLoading, setPwLoading] = useState(false)
+
+  async function handleChangePassword() {
+    setPwMsg({ text: '', ok: false })
+    if (!pwForm.current || !pwForm.next || !pwForm.confirm) return setPwMsg({ text: 'Please fill all fields.', ok: false })
+    if (pwForm.next.length < 6) return setPwMsg({ text: 'New password must be at least 6 characters.', ok: false })
+    if (pwForm.next !== pwForm.confirm) return setPwMsg({ text: 'New passwords do not match.', ok: false })
+    setPwLoading(true)
+    try {
+      const credential = EmailAuthProvider.credential(user.email, pwForm.current)
+      await reauthenticateWithCredential(auth.currentUser, credential)
+      await updatePassword(auth.currentUser, pwForm.next)
+      setPwMsg({ text: 'Password changed successfully.', ok: true })
+      setPwForm({ current: '', next: '', confirm: '' })
+    } catch (e) {
+      const msg = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
+        ? 'Current password is incorrect.'
+        : 'Failed to change password. Try again.'
+      setPwMsg({ text: msg, ok: false })
+    } finally { setPwLoading(false) }
+  }
 
   useEffect(() => {
     if (profile && Object.keys(profile).length > 0) {
@@ -204,25 +229,56 @@ export default function Settings({ user, data, profile, symbol }) {
             Click Refresh to load current PHP exchange rates.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
             {/* PHP reference card — always on top */}
             <div style={{ background: 'var(--accent-glow)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', gridColumn: '1 / -1' }}>
-              <div style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4, fontWeight: 600 }}>Base currency</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, color: 'var(--accent)', fontWeight: 700 }}>₱1.00 PHP</div>
+              <div style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4, fontWeight: 600 }}>Philippine Peso — Base currency</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, color: 'var(--accent)', fontWeight: 700 }}>₱ PHP</div>
             </div>
-            {['USD','EUR','GBP','JPY','SGD','AUD','CAD','HKD','KRW','CNY'].map(code => (
-              rates[code] && (
+            {['USD','EUR','GBP','JPY','SGD','AUD','CAD','HKD','KRW','CNY'].map(code => {
+              if (!rates[code]) return null
+              // How many PHP = 1 unit of foreign currency
+              const phpPer1Foreign = (1 / rates[code]).toFixed(2)
+              return (
                 <div key={code} style={{ background: 'var(--surface2)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>1 PHP =</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>
-                    {rates[code].toFixed(4)} {code}
+                  <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>1 {code} =</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--text)', fontWeight: 700 }}>
+                    ₱{phpPer1Foreign}
                   </div>
+                  <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>PHP</div>
                 </div>
               )
-            ))}
+            })}
           </div>
         )}
         <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8 }}>Source: exchangerate-api.com · Rates are indicative</div>
+      </div>
+
+      {/* CHANGE PASSWORD */}
+      <div className={styles.card}>
+        <div className={styles.cardTitle}>Change Password</div>
+        {pwMsg.text && (
+          <div style={{ padding: '8px 12px', borderRadius: 'var(--radius-sm)', fontSize: 13, marginBottom: 12, background: pwMsg.ok ? 'var(--accent-glow)' : 'var(--red-dim)', color: pwMsg.ok ? 'var(--accent)' : 'var(--red)', border: `1px solid ${pwMsg.ok ? 'var(--accent)' : 'var(--red)'}` }}>
+            {pwMsg.text}
+          </div>
+        )}
+        <div className={`${styles.formRow} ${styles.col3}`} style={{ marginBottom: 12 }}>
+          <div className={styles.formGroup}>
+            <label>Current password</label>
+            <input type="password" placeholder="••••••••" value={pwForm.current} onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))} />
+          </div>
+          <div className={styles.formGroup}>
+            <label>New password</label>
+            <input type="password" placeholder="Min. 6 characters" value={pwForm.next} onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))} />
+          </div>
+          <div className={styles.formGroup}>
+            <label>Confirm new password</label>
+            <input type="password" placeholder="••••••••" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} />
+          </div>
+        </div>
+        <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={handleChangePassword} disabled={pwLoading}>
+          {pwLoading ? 'Updating...' : 'Update password'}
+        </button>
       </div>
 
       {/* ABOUT */}

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
 import { fmt, today, RECUR_OPTIONS } from '../lib/utils'
 import { getProjectedTransactions } from '../lib/recurrence'
+import { buildForecast, getForecastColor, getEndOfMonthBalance, getTransactionImpact } from '../lib/forecast'
 import styles from './Page.module.css'
 import calStyles from './Calendar.module.css'
 
@@ -108,6 +109,35 @@ export default function Calendar({ user, data, symbol }) {
   const totalSavings = data.goals.reduce((a, g) => a + (g.current || 0), 0)
   const net = mIncome - mExpense
 
+  // Starting balance = account balances + cumulative net of all months BEFORE the viewed month
+  const baseBalance = data.accounts.reduce((s, a) => s + (a.balance || 0), 0)
+
+  const startingBalance = useMemo(() => {
+    // Sum all income and expenses from months strictly before the viewed month
+    const viewedYm = `${year}-${String(month + 1).padStart(2, '0')}`
+    const priorIncome = data.income
+      .filter(t => t.date && t.date.slice(0, 7) < viewedYm)
+      .reduce((s, t) => s + (t.amount || 0), 0)
+    const priorExpense = data.expenses
+      .filter(t => t.date && t.date.slice(0, 7) < viewedYm)
+      .reduce((s, t) => s + (t.amount || 0), 0)
+    return baseBalance + priorIncome - priorExpense
+  }, [data.income, data.expenses, year, month, baseBalance])
+
+  // Build forecast map for this month — starting from cumulative balance
+  const forecastMap = useMemo(() =>
+    buildForecast(allIncome, allExpenses, year, month, startingBalance),
+    [allIncome, allExpenses, year, month, startingBalance]
+  )
+
+  const endOfMonthBalance = getEndOfMonthBalance(forecastMap)
+
+  // Impact preview for current form
+  const formImpact = useMemo(() => {
+    if (!selected || !form.amount || !parseFloat(form.amount)) return null
+    return getTransactionImpact(forecastMap, selected, parseFloat(form.amount), modalType)
+  }, [forecastMap, selected, form.amount, modalType])
+
   const isIncome = modalType === 'income'
   const cats = isIncome ? CATS_INCOME : CATS_EXPENSE
 
@@ -152,16 +182,24 @@ export default function Calendar({ user, data, symbol }) {
             const hasExpense = expenses.length > 0
             const isSelected = selected === ds
             const isToday = ds === todayStr
+            const forecast = forecastMap[ds]
+            const fColor = forecast ? getForecastColor(forecast.status) : null
             return (
               <div key={d}
                 className={`${calStyles.cell} ${isToday ? calStyles.today : ''} ${isSelected ? calStyles.selectedCell : ''} ${(hasIncome || hasExpense) ? calStyles.hasData : ''}`}
+                style={fColor?.bg && !isToday ? { background: fColor.bg, borderColor: fColor.border } : {}}
                 onClick={() => setSelected(ds === selected ? null : ds)}
               >
-                <div className={calStyles.dateNum}>{d}</div>
+                <div className={calStyles.dateNum} style={fColor?.text && !isToday ? { color: fColor.text } : {}}>{d}</div>
                 {(hasIncome || hasExpense) && (
                   <div className={calStyles.dots}>
                     {hasIncome && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
                     {hasExpense && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
+                  </div>
+                )}
+                {forecast && forecast.status !== 'neutral' && (
+                  <div className={calStyles.forecastBal} style={{ color: fColor.text }}>
+                    {fmt(forecast.runningBalance, s)}
                   </div>
                 )}
               </div>
@@ -192,10 +230,21 @@ export default function Calendar({ user, data, symbol }) {
           </div>
           <div className={calStyles.stripDivider} />
           <div className={calStyles.stripItem}>
-            <span className={calStyles.stripLabel}>Savings</span>
-            <span className={calStyles.stripVal} style={{ color: 'var(--blue)' }}>{fmt(totalSavings, s)}</span>
+            <span className={calStyles.stripLabel}>End of month</span>
+            <span className={calStyles.stripVal} style={{ color: endOfMonthBalance >= 0 ? 'var(--accent)' : 'var(--red)', fontWeight: 700 }}>
+              {fmt(endOfMonthBalance, s)}
+            </span>
           </div>
         </div>
+        {/* FORECAST LEGEND */}
+        {startingBalance > 0 && (
+          <div className={calStyles.forecastLegend}>
+            <span className={calStyles.legendItem}><span className={calStyles.legendDot} style={{ background: 'var(--accent)' }} />Healthy</span>
+            <span className={calStyles.legendItem}><span className={calStyles.legendDot} style={{ background: 'var(--amber)' }} />Tight</span>
+            <span className={calStyles.legendItem}><span className={calStyles.legendDot} style={{ background: 'var(--red)' }} />Negative</span>
+            <span style={{ fontSize: 10, color: 'var(--text3)', marginLeft: 'auto' }}>Balance: {fmt(startingBalance, s)}</span>
+          </div>
+        )}
       </div>
 
       {/* DAY PANEL — bottom sheet on mobile, card on desktop */}
@@ -206,7 +255,14 @@ export default function Calendar({ user, data, symbol }) {
           <div className={calStyles.dayPanel}>
             <div className={calStyles.dayPanelHandle} />
             <div className={calStyles.dayPanelHeader}>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{selected}</span>
+              <div>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{selected}</span>
+                {forecastMap[selected] && forecastMap[selected].status !== 'neutral' && (
+                  <div style={{ fontSize: 11, color: getForecastColor(forecastMap[selected].status).text, marginTop: 2 }}>
+                    Projected balance: {fmt(forecastMap[selected].runningBalance, s)}
+                  </div>
+                )}
+              </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <button className={calStyles.addBtnIncome} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'income')}>+ Income</button>
                 <button className={calStyles.addBtnExpense} style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => openAdd(selected, 'expense')}>− Expense</button>
@@ -346,6 +402,17 @@ export default function Calendar({ user, data, symbol }) {
                 ))}
               </div>
             </div>
+
+            {/* IMPACT PREVIEW */}
+            {formImpact && (
+              <div className={calStyles.impactPreview} style={{
+                background: formImpact.level === 'negative' ? 'var(--red-dim)' : formImpact.level === 'tight' ? 'var(--amber-dim)' : 'var(--accent-glow)',
+                borderColor: formImpact.level === 'negative' ? 'var(--red)' : formImpact.level === 'tight' ? 'var(--amber)' : 'var(--accent)',
+                color: formImpact.level === 'negative' ? 'var(--red)' : formImpact.level === 'tight' ? 'var(--amber)' : 'var(--accent)',
+              }}>
+                {formImpact.msg}
+              </div>
+            )}
 
             <div className={calStyles.modalActions}>
               <button onClick={() => { setShowModal(false); setEditTx(null) }} className={calStyles.btnCancel}>Cancel</button>
