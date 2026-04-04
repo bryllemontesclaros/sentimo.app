@@ -52,6 +52,8 @@ export default function Settings({ user, data, profile, symbol }) {
     }
   }, [profile])
 
+  useEffect(() => { fetchRates() }, [])
+
   async function fetchRates() {
     setRatesLoading(true)
     try {
